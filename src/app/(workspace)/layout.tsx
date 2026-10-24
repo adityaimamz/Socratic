@@ -6,5 +6,5 @@ export const dynamic="force-dynamic";
 export default async function WorkspaceLayout({children}:{children:React.ReactNode}){
  const p=await currentProfile().catch(()=>redirect("/access-pending")); if(!p)redirect("/login");
  const data=await rpc<Workspace>(p,"workspace",{}).catch(()=>null); if(!data)redirect("/access-pending");
- return <Shell profile={p} institution={data.settings.institution}>{children}</Shell>;
+ return <Shell profile={p}>{children}</Shell>;
 }

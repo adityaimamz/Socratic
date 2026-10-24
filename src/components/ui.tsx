@@ -1,7 +1,7 @@
 import { ClipboardList, AlertCircle, AlertTriangle, Info, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-export function Brand(){return <Link href="/dashboard" className="brand" aria-label="Socratic, beranda"><Image src="/logo.jpeg" alt="Socratic — Question · Reason · Progress" width={512} height={382} sizes="(max-width: 760px) 128px, 192px" loading="eager"/></Link>}
+export function Brand(){return <Link href="/dashboard" className="brand" aria-label="Socratic, beranda"><Image src="/logo.png" alt="Socratic — Question · Reason · Progress" width={512} height={382} sizes="(max-width: 760px) 128px, 192px" loading="eager"/></Link>}
 export function Badge({children,tone="neutral"}:{children:React.ReactNode;tone?:string}){return <span className={`badge ${tone}`}><span className="dot"/>{children}</span>}
 export function Notice({children,tone="",title,id}:{children:React.ReactNode;tone?:""|"error"|"warning"|"success";title?:string;id?:string}){
  const Icon=tone==="success"?ShieldCheck:tone==="warning"?AlertTriangle:tone==="error"?AlertCircle:Info;
