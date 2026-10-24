@@ -16,7 +16,12 @@ try{
  const exists=!rpcError||rpcError.message.includes('UNAUTHORIZED');
  console.log(`Migrasi inti: ${exists?'tersedia':'belum tersedia'}`);
  if(rpcError&&!exists)console.log(`Kode pemeriksaan migrasi: ${rpcError.code??'unknown'}`);
+ // An uninvited probe cannot create a profile; it checks the deployed RPC contract.
+ const {data:scoped,error:scopedError}=await admin.rpc('school_request',{p_actor:'00000000-0000-4000-8000-000000000000',p_email:'schema-check@invalid.invalid',p_name:'Schema check',p_action:'view.session',p_data:{}});
+ const scopedReady=!scopedError&&typeof scoped?.ok==='boolean';
+ console.log(`Migrasi fetch/navigation (13): ${scopedReady?'tersedia':'belum tersedia — jalankan npm run supabase:migrate sebelum deploy'}`);
+ if(scopedError)console.log(`Kode pemeriksaan RPC baru: ${scopedError.code??'unknown'}`);
  const {data:bucket,error:bucketError}=await admin.storage.getBucket('exam-media');
  console.log(`Storage exam-media: ${bucketError?'belum tersedia':bucket.public?'PERLU DIUBAH MENJADI PRIVAT':'privat'}`);
- if(userError)process.exitCode=1;
+ if(userError||!exists||!scopedReady||bucketError||bucket.public)process.exitCode=1;
 }catch(error){console.error(`Pemeriksaan jaringan gagal: ${error.cause?.code??error.name}. Nilai kredensial tidak ditampilkan.`);process.exitCode=1;}

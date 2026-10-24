@@ -436,7 +436,7 @@ Jika memasang di Vercel, ikuti [panduan Vercel](docs/VERCEL.md). Siapkan empat v
 | `npm run lint` | Memeriksa kode dengan ESLint. |
 | `npm test` | Menjalankan tes fungsi dan database uji. |
 | `npm run test:e2e` | Menjalankan pengujian browser dengan layanan uji lokal. |
-| `npm run supabase:check` | Memeriksa sambungan, layanan masuk, kunci, fungsi inti, dan penyimpanan gambar. |
+| `npm run supabase:check` | Memeriksa sambungan, layanan masuk, kunci, RPC inti/optimasi, dan storage privat; gagal bila migrasi wajib belum tersedia. |
 | `npm run supabase:prepare` | Menyiapkan penyimpanan gambar privat. |
 | `npm run supabase:migrate` | Menerapkan migrasi SQL yang belum tersedia. |
 | `npm run bootstrap:admin` | Menambahkan undangan admin pertama. |

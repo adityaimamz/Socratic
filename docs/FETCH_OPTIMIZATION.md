@@ -90,3 +90,13 @@ Benchmark browser mencakup sembilan view baca (50 sampel tiap view), tiga rute p
 Metadata Supabase yang dibaca pada 24 Oktober 2026 menunjukkan region `ap-southeast-2`. Region fungsi Vercel belum dapat diverifikasi: checkout tidak terhubung ke proyek Vercel dan `vercel.json` belum menetapkan region. Jangan menyatakan region sudah selaras. Periksa region fungsi sebenarnya sebelum rilis dan siapkan penyelarasan ke region yang dekat database bila diperlukan.
 
 Checkout belum memiliki `.local/load-users.json` dan runtime k6 tidak terdeteksi saat pemeriksaan. Uji beban hosted 5/50/500 serta target latensi Vercel–Supabase masih memerlukan lingkungan staging dan akun pengujian yang sesuai. Tidak ada migrasi database hosted, deployment, atau perubahan infrastruktur yang dijalankan oleh validasi lokal ini.
+
+## Pemulihan situs live — 24 Oktober 2026
+
+Setelah source optimasi terdeploy, halaman live gagal karena database masih mencatat migrasi 1–12. Pemeriksaan read-only mengonfirmasi `public.school_request` dan `private.school_view` belum tersedia. Migrasi tambahan `202610240013_scoped_reads.sql` kemudian diterapkan ke Supabase dan schema cache PostgREST dimuat ulang.
+
+Verifikasi setelah pemulihan: 13 migrasi tercatat; RPC sensitif tetap server-only; RLS, finalizer, retensi, dan bucket privat tetap sesuai. Login akun dummy admin/pengajar/siswa berhasil. Sebanyak 13 pembacaan API lintas tiga peran mendapat HTTP 200; tujuh halaman admin dibuka melalui navigasi browser tanpa error JavaScript. Laporan tanpa kredensial tersedia lokal di `.local/scoped-live-recovery.json`.
+
+`npm run supabase:check` kini gagal dengan exit code 1 bila RPC migrasi 13 belum tersedia, termasuk ketika RPC inti lama masih ada. `vercel.json` menjalankan pemeriksaan ini sebelum build pada deployment berikutnya. Jalankan migrasi yang tertinggal dari lingkungan pengelolaan sebelum deploy; Personal Access Token tetap tidak diperlukan di Vercel. Dua regresi pemeriksaan kesiapan (skema lama ditolak/skema baru diterima) lulus.
+
+Pemulihan ini memvalidasi fungsi situs live. Angka benchmark di atas tetap hasil fixture lokal; uji kapasitas 500 peserta, cold start hosting, dan target p95 hosted belum dilakukan.
