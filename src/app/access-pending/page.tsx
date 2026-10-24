@@ -1,0 +1,2 @@
+import { Brand,Header,Notice } from "@/components/ui";
+export default function Pending(){return <main className="setup" id="main"><Brand/><Header title="Akses belum tersedia" description="Akun perlu didaftarkan dan diaktifkan oleh admin lembaga."/><Notice tone="warning">Hubungi admin menggunakan email akun yang sama. Jika database belum dikonfigurasi, admin perlu menyelesaikan panduan setup.</Notice><form action="/auth/logout" method="post"><button className="btn">Keluar dan gunakan akun lain</button></form></main>}

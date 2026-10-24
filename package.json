@@ -1,0 +1,52 @@
+{
+  "name": "socratic",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build",
+    "start": "next start --hostname 127.0.0.1",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "supabase:check": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/check-supabase.mjs",
+    "supabase:prepare": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/prepare-supabase.mjs",
+    "supabase:migrate": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/migrate-supabase.mjs",
+    "bootstrap:admin": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/bootstrap-admin.mjs",
+    "seed:demo": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/seed-demo.mjs --apply",
+    "seed:demo:plan": "node scripts/seed-demo.mjs --plan",
+    "seed:demo:check": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/seed-demo.mjs --check",
+    "seed:demo:clean": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/seed-demo.mjs --clean"
+  },
+  "dependencies": {
+    "next": "16.4.2",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "@supabase/ssr": "0.12.7",
+    "@supabase/supabase-js": "2.118.0",
+    "zod": "4.6.7",
+    "lucide-react": "1.61.0",
+    "@fontsource/ibm-plex-sans": "5.3.0",
+    "@fontsource/ibm-plex-mono": "5.3.0"
+  },
+  "devDependencies": {
+    "typescript": "6.0.3",
+    "@types/node": "26.6.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
+    "tailwindcss": "4.3.3",
+    "@tailwindcss/postcss": "4.3.3",
+    "eslint": "9.39.5",
+    "vitest": "5.0.5",
+    "@playwright/test": "1.64.1",
+    "@electric-sql/pglite": "0.5.11",
+    "pg": "8.23.1",
+    "typescript-eslint": "8.72.0",
+    "eslint-plugin-react-hooks": "7.1.1"
+  },
+  "type": "module"
+}

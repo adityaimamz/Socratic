@@ -1,0 +1,14 @@
+node_modules/
+.next/
+.next-e2e/
+.env*
+!.env.example
+coverage/
+test-results/
+playwright-report/
+*.tsbuildinfo
+.taste-skill/
+.agents/
+skills-lock.json
+supabase/.temp/
+.local/
