@@ -15,7 +15,7 @@ export const currentProfile = cache(async (): Promise<Profile | null> => {
   if (admissionError) {
     if (/INVITATION_REQUIRED/.test(admissionError.message)) throw new ApiError("INVITATION_REQUIRED", undefined, 403);
     if (/ACCOUNT_DISABLED/.test(admissionError.message)) throw new ApiError("ACCOUNT_DISABLED", undefined, 403);
-    throw new ApiError("SETUP_REQUIRED", "Database belum siap. Jalankan migrasi dan periksa konfigurasi server.", 503);
+    throw new ApiError("SETUP_REQUIRED", "Layanan ujian belum siap. Minta bantuan pengajar atau pengelola sekolah.", 503);
   }
   return data as Profile;
 });

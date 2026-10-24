@@ -1,3 +1,19 @@
 import Link from "next/link";
-import { Brand,Header,Notice } from "@/components/ui";
-export default function Privacy(){return <main className="setup" id="main"><Brand/><Header title="Privasi & aturan ujian" description="Pahami apa yang dicatat dan bagaimana aturan diterapkan."/><section className="panel stack"><h2>Data yang digunakan</h2><p>Identitas akun (Google atau email/password), penugasan kelas, jawaban, waktu aktivitas, perpindahan halaman, keluar fullscreen, dan perpindahan sesi diproses untuk pelaksanaan ujian. Kamera, mikrofon, dan rekaman layar tidak dikumpulkan.</p><h2>Mode Exam ketat</h2><Notice tone="warning">Meninggalkan tab ujian akan mengosongkan seluruh jawaban, termasuk yang sudah tersimpan. Waktu tetap berjalan. Minimize atau layar mati juga dapat memicu aturan ini.</Notice><p>Peserta dapat mengerjakan kembali selama masih ada waktu. Peristiwa hanya dapat diproses server setelah laporan diterima; aplikasi tidak menjamin deteksi semua aktivitas perangkat.</p><h2>Akses dan penyimpanan</h2><p>Peserta hanya mengakses ujian dan hasil miliknya. Pengajar yang ditugaskan serta admin dapat meninjau hasil dan aktivitas. Default retensi hasil adalah 365 hari, aktivitas 90 hari, dan audit 365 hari; kebijakan efektif ditampilkan sebelum mulai ujian.</p><h2>Permintaan peninjauan</h2><p>Hubungi pengajar atau admin lembaga jika menduga terjadi salah deteksi, membutuhkan akomodasi, atau ingin mengajukan pertanyaan mengenai data. Pengawas dapat mencatat peninjauan dan memberi kesempatan ulang; jawaban sebelum reset tidak dipulihkan melalui aplikasi.</p></section><Link href="/login" className="btn">Kembali</Link></main>}
+import { Brand,Header } from "@/components/ui";
+import { ExamRules } from "@/components/exam-rules";
+export default function Privacy(){return <main className="setup" id="main">
+ <Brand/><Header title="Data pribadi & aturan ujian" description="Baca aturan, aktivitas yang dicatat, dan cara meminta bantuan."/>
+ <section className="panel stack">
+  <h2>Data apa yang disimpan?</h2>
+  <p>Aplikasi menyimpan nama dan email akun, kelas, jawaban, waktu pengerjaan, serta catatan aktivitas ujian. Kamera, mikrofon, dan rekaman layar tidak digunakan.</p>
+  <ExamRules mode="exam"/>
+  <h2>Bagaimana dengan kuis?</h2>
+  <p>Pada kuis, meninggalkan halaman ujian tetap dicatat, tetapi tidak menghapus jawaban secara otomatis. Layar penuh tidak diwajibkan. Ikuti petunjuk pengajar tentang bahan yang boleh dibuka.</p>
+  <h2>Siapa yang bisa melihat?</h2>
+  <p>Kamu hanya bisa membuka ujian dan hasil milikmu. Pengajar dan pengawas yang ditugaskan serta pengelola sekolah atau lembaga dapat melihat hasil dan catatan aktivitas untuk meninjau pelaksanaan ujian.</p>
+  <h2>Berapa lama data disimpan?</h2>
+  <p>Lama penyimpanan mengikuti pengaturan sekolah atau lembaga. Jumlah harinya ditampilkan pada pemeriksaan sebelum mulai ujian. Pengaturan awalnya adalah 365 hari untuk hasil, 90 hari untuk catatan aktivitas, dan 365 hari untuk catatan tindakan pengelola.</p>
+  <h2>Perlu bantuan tentang data?</h2>
+  <p>Hubungi pengajar atau pengelola sekolah jika ingin bertanya tentang data pribadi atau mengajukan peninjauan kejadian selama ujian.</p>
+ </section><Link href="/dashboard" className="btn">Kembali ke ujian saya</Link>
+</main>}

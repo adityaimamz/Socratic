@@ -47,7 +47,7 @@ export function validationMessage(error:z.ZodError){
  const details=[...new Set(error.issues.map(issue=>{
   if(issue.code==="custom")return issue.message;
   const field=String(issue.path[0]??"");
-  if(!labels[field])return "Data sesi tidak sesuai. Muat ulang halaman atau hubungi pengawas jika sedang ujian.";
+  if(!labels[field])return "Halaman ini perlu diperiksa. Minta bantuan pengawas jika sedang mengerjakan ujian.";
   const row=typeof issue.path[1]==="number"?` ke-${issue.path[1]+1}`:"";
   return `${labels[field]}${row}: ${issue.message}`;
  }))];

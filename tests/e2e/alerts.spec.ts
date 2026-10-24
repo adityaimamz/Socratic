@@ -6,7 +6,7 @@ import {inspectScreen} from "../support/visual";
 async function fillLogin(page:Page){
  await page.goto("/login");
  await page.getByLabel("Email",{exact:true}).fill("teacher@school.test");
- await page.getByLabel("Password",{exact:true}).fill("wrong-password");
+ await page.getByLabel("Kata sandi",{exact:true}).fill("wrong-password");
 }
 
 test("origin rejection explains the address problem while keeping the guard",async({page,request})=>{
@@ -27,16 +27,16 @@ test("origin rejection explains the address problem while keeping the guard",asy
 
 test("login errors can be retried, then successful login still works",async({page})=>{
  await fillLogin(page);await page.getByRole("button",{name:"Masuk dengan email"}).click();
- await expect(page.getByRole("main").getByRole("alert")).toContainText("Login belum berhasil");
- await expect(page.getByRole("main").getByRole("alert")).toContainText("Email atau password tidak sesuai");
- await page.getByLabel("Password",{exact:true}).fill("Valid-test-password-2026");await page.getByRole("button",{name:"Masuk dengan email"}).click();
+ await expect(page.getByRole("main").getByRole("alert")).toContainText("Belum berhasil masuk");
+ await expect(page.getByRole("main").getByRole("alert")).toContainText("Email atau kata sandi tidak sesuai");
+ await page.getByLabel("Kata sandi",{exact:true}).fill("Valid-test-password-2026");await page.getByRole("button",{name:"Masuk dengan email"}).click();
  await expect(page).toHaveURL(/\/(dashboard|manage)$/);
 });
 
 test("network and non-JSON failures remain readable and retryable",async({page})=>{
  await page.route("**/auth/password",route=>route.abort("internetdisconnected"));
  await fillLogin(page);await page.getByRole("button",{name:"Masuk dengan email"}).click();
- await expect(page.getByRole("main").getByRole("alert")).toContainText("Koneksi belum tersedia");await expect(page.getByRole("main").getByRole("alert")).not.toContainText("Failed to fetch");
+ await expect(page.getByRole("main").getByRole("alert")).toContainText("Internet belum tersambung");await expect(page.getByRole("main").getByRole("alert")).not.toContainText("Failed to fetch");
  await page.unroute("**/auth/password");
  await page.route("**/auth/password",route=>route.fulfill({status:502,contentType:"text/html",body:"<html>Bad gateway</html>"}));
  await page.getByRole("button",{name:"Masuk dengan email"}).click();await expect(page.getByRole("main").getByRole("alert")).toContainText("Layanan sedang bermasalah");
@@ -47,7 +47,7 @@ test("rate limits give a next step and switching mode clears stale errors",async
  await page.route("**/auth/password",route=>route.fulfill({status:429,json:{code:"RATE_LIMITED",message:"Terlalu banyak percobaan. Tunggu satu menit, lalu coba lagi."}}));
  await fillLogin(page);await page.getByRole("button",{name:"Masuk dengan email"}).click();
  await expect(page.getByRole("main").getByRole("alert")).toContainText("Tunggu satu menit");
- await page.getByRole("button",{name:"Lupa password?"}).click();await expect(page.getByRole("main").getByRole("alert")).toHaveCount(0);
+ await page.getByRole("button",{name:"Lupa kata sandi?"}).click();await expect(page.getByRole("main").getByRole("alert")).toHaveCount(0);
 });
 
 test("registration and recovery do not promise delivery or disclose invitations",async({page,request})=>{
@@ -56,12 +56,12 @@ test("registration and recovery do not promise delivery or disclose invitations"
  const unknown=await request.post("/auth/password",{headers,data:register});
  const invited=await request.post("/auth/password",{headers,data:{...register,email:"teacher@school.test"}});
  expect(unknown.status()).toBe(200);expect(await unknown.json()).toEqual(await invited.json());
- await page.goto("/login");await page.getByRole("button",{name:"Buat akun undangan",exact:true}).click();
- await page.getByLabel("Nama",{exact:true}).fill(register.name);await page.getByLabel("Email",{exact:true}).fill(register.email);await page.getByLabel("Password",{exact:true}).fill(register.password);await page.getByLabel("Konfirmasi password",{exact:true}).fill(register.password);
+ await page.goto("/login");await page.getByRole("button",{name:"Daftar dengan email",exact:true}).click();
+ await page.getByLabel("Nama",{exact:true}).fill(register.name);await page.getByLabel("Email",{exact:true}).fill(register.email);await page.getByLabel("Kata sandi",{exact:true}).fill(register.password);await page.getByLabel("Ulangi kata sandi",{exact:true}).fill(register.password);
  await page.getByRole("button",{name:"Buat akun",exact:true}).click();
- await expect(page.getByRole("status")).toContainText("hanya dapat dikirim jika alamat Anda sudah diundang");
- await expect(page.locator(".notice.success")).toHaveCount(0);await expect(page.getByLabel("Password",{exact:true})).toBeFocused();
- await page.getByRole("button",{name:"Lupa password?"}).click();await page.getByLabel("Email",{exact:true}).fill(register.email);await page.getByRole("button",{name:"Kirim tautan pemulihan"}).click();
+ await expect(page.getByRole("status")).toContainText("hanya dapat dikirim jika emailmu sudah didaftarkan");
+ await expect(page.locator(".notice.success")).toHaveCount(0);await expect(page.getByLabel("Kata sandi",{exact:true})).toBeFocused();
+ await page.getByRole("button",{name:"Lupa kata sandi?"}).click();await page.getByLabel("Email",{exact:true}).fill(register.email);await page.getByRole("button",{name:"Kirim tautan ganti sandi"}).click();
  await expect(page.getByRole("status")).toContainText("layanan email tersedia");
 });
 

@@ -41,8 +41,8 @@ test("Socratic covers public and role pages at three widths",async({browser})=>{
   if(role==="public"){
    for(const route of ["/login","/privacy","/setup","/access-pending","/not-a-page"])await audit(page,role,route,route==="/not-a-page"?"not-found":route.slice(1));
    await audit(page,role,"/login?error=confirmation","login-error");
-   await page.getByRole("button",{name:"Buat akun undangan",exact:true}).click();await inspectScreen(page,"socratic-register");
-   await page.getByRole("button",{name:"Kembali ke masuk",exact:true}).click();await page.getByRole("button",{name:"Lupa password?",exact:true}).click();await inspectScreen(page,"socratic-recover");
+   await page.getByRole("button",{name:"Daftar dengan email",exact:true}).click();await inspectScreen(page,"socratic-register");
+   await page.getByRole("button",{name:"Kembali ke halaman masuk",exact:true}).click();await page.getByRole("button",{name:"Lupa kata sandi?",exact:true}).click();await inspectScreen(page,"socratic-recover");
   }else{
    const w=await(await context.request.get("/api/workspace")).json();
    const exam=w.exams.find((e:{title:string})=>e.title==="Penilaian Matematika · Bab 1");

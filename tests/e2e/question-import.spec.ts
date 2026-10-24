@@ -6,7 +6,7 @@ import { inspectScreen } from "../support/visual";
 const headers = { Origin: "http://127.0.0.1:3100" };
 async function signIn(page: Page, role = "teacher") {
   await page.goto("/login"); await page.getByLabel("Email", { exact: true }).fill(`${role}@school.test`);
-  await page.getByLabel("Password", { exact: true }).fill("Valid-test-password-2026");
+  await page.getByLabel("Kata sandi", { exact: true }).fill("Valid-test-password-2026");
   await page.getByRole("button", { name: "Masuk dengan email" }).click();
   await expect(page).toHaveURL(/\/(manage|dashboard)$/);
 }
