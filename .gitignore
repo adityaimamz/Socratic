@@ -3,6 +3,7 @@ node_modules/
 .next-e2e/
 .env*
 !.env.example
+client_secret*.json
 coverage/
 test-results/
 playwright-report/
