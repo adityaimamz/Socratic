@@ -3,11 +3,12 @@ import { useEffect,useState } from "react";
 import { useRouter } from "next/navigation";
 import { Play,CheckCircle2 } from "lucide-react";
 import { api,claimSession } from "@/lib/client";
-import type { Exam,Attempt,AttemptSummary,Settings } from "@/lib/types";
+import type { Attempt,AttemptSummary,Settings } from "@/lib/types";
+import type {StudentExam} from "@/lib/views";
 import { Notice } from "./ui";
-export function StartExam({exam,settings,activeAttempt}:{exam:Exam;settings:Settings;activeAttempt?:AttemptSummary}){
+export function StartExam({exam,settings,activeAttempt,serverNow,fullscreenExempt}:{exam:StudentExam;settings:Settings;activeAttempt?:AttemptSummary;serverNow:string;fullscreenExempt:boolean}){
  const [accepted,setAccepted]=useState(false),[ready,setReady]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(""),[fullscreen,setFullscreen]=useState(false),[remaining,setRemaining]=useState<number|null>(null);const [exempt,setExempt]=useState(false);const router=useRouter();
- useEffect(()=>{setFullscreen(document.fullscreenEnabled);void Promise.all([api<{server_now:string}>("workspace"),api<{fullscreen_exempt:boolean}>(`exams/${exam.id}/accommodation`)]).then(([d,ac])=>{setExempt(ac.fullscreen_exempt);sessionStorage.setItem(`safe-exam-fullscreen-exempt:${exam.id}`,String(ac.fullscreen_exempt));setReady(true);const available=(Date.parse(activeAttempt?.deadline_at??exam.closes_at)-Date.parse(d.server_now))/60000;setRemaining(Math.max(0,activeAttempt?available:Math.min(exam.duration_minutes,available)));}).catch(e=>setError(e instanceof Error?e.message:"Internet belum terhubung. Periksa sambungan, lalu buka ulang halaman."));},[exam.id,exam.closes_at,exam.duration_minutes,activeAttempt?.deadline_at]);
+ useEffect(()=>{setFullscreen(document.fullscreenEnabled);setExempt(fullscreenExempt);sessionStorage.setItem(`safe-exam-fullscreen-exempt:${exam.id}`,String(fullscreenExempt));setReady(true);const available=(Date.parse(activeAttempt?.deadline_at??exam.closes_at)-Date.parse(serverNow))/60000;setRemaining(Math.max(0,activeAttempt?available:Math.min(exam.duration_minutes,available)));},[exam.id,exam.closes_at,exam.duration_minutes,activeAttempt?.deadline_at,serverNow,fullscreenExempt]);
  async function start(){setBusy(true);setError("");try{if(exam.mode==="exam"&&!exempt){if(!fullscreen)throw new Error("Perangkat ini belum bisa membuka layar penuh. Gunakan komputer atau minta bantuan pengawas.");try{await document.documentElement.requestFullscreen();}catch{throw new Error("Layar penuh belum bisa dibuka. Tekan tombol mulai atau lanjutkan sekali lagi. Jika tetap gagal, minta bantuan pengawas.");}}const a=await api<Attempt>(`exams/${exam.id}/attempts`,{session_id:await claimSession()});router.push(a.status==="finalized"?`/results/${a.id}`:`/attempts/${a.id}`);}catch(e){setError(e instanceof Error?e.message:"Ujian belum dapat dimulai.");if(document.fullscreenElement)await document.exitFullscreen().catch(()=>{});setBusy(false);}}
  return <div className="panel stack">
   <h2>{activeAttempt?"Sebelum melanjutkan":"Pemeriksaan sebelum mulai"}</h2>

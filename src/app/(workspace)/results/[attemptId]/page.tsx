@@ -1,14 +1,15 @@
-import Link from "next/link";
-import {notFound} from "next/navigation";
+"use client";
+import Link from "@/components/navigation-link";
+
 import {CheckCircle2} from "lucide-react";
-import {requireProfile,rpc} from "@/lib/server";
+import {RemoteView} from "@/components/remote-view";
+import {use} from "react";
 import {formatDate} from "@/lib/domain";
-import type {ExamResult} from "@/lib/types";
+
 import {Header,Notice,Stats,statusLabel} from "@/components/ui";
 
-export default async function Result({params}:{params:Promise<{attemptId:string}>}){
- const {attemptId}=await params;const p=await requireProfile();
- const r=await rpc<ExamResult>(p,"attempt.result",{id:attemptId}).catch(()=>null);if(!r)notFound();
+export default function Result({params}:{params:Promise<{attemptId:string}>}){
+ const {attemptId}=use(params);return <RemoteView view="result" params={{id:attemptId}}>{r=>{
  const pending=r.receipt.grading_status==="pending";
  return <>
   <Header title="Ujian telah diterima" description="Ujianmu sudah selesai dan jawaban yang diterima sistem sudah tercatat. Simpan nomor bukti jika perlu menghubungi pengawas." action={<CheckCircle2 color="var(--positive)" size={26}/>}/>
@@ -27,4 +28,4 @@ export default async function Result({params}:{params:Promise<{attemptId:string}
    {r.review_released&&<section className="panel stack"><h2>Pembahasan jawaban</h2>{r.review.map((q,i)=><div key={q.id}><h3>{i+1}. {q.prompt}</h3>{q.kind==="essay"?<><p className="essay-response">{r.answers[q.id]?.text||"Jawaban kosong."}</p><p style={{whiteSpace:"pre-wrap",marginTop:12}}>Pedoman: {q.rubric||"Tidak ada pedoman tambahan."}</p></>:<><p className="small" style={{marginTop:8}}>Jawabanmu: {q.options.find(o=>o.id===r.answers[q.id]?.optionId)?.text??"Kosong"}</p><p className="small">Jawaban benar: {q.options.find(o=>o.id===q.correctOptionId)?.text}</p></>}</div>)}</section>}
   </div><aside className="panel stack"><h2>Langkah berikutnya</h2><p>{pending?"Tunggu pengajar menyelesaikan penilaian, lalu buka kembali halaman ini.":"Nilai dan pembahasan muncul setelah diterbitkan pengajar. Jika ada pertanyaan tentang hasil, catatan aktivitas, atau kesempatan mengulang, hubungi pengajar."}</p><Link className="btn" href="/dashboard">Kembali ke ujian saya</Link></aside></div>
  </>;
-}
+}}</RemoteView>;}

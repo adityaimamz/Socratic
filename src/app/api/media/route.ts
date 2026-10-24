@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { currentProfile } from "@/lib/server";
+import { serverRequest } from "@/lib/server";
+import type {Profile} from "@/lib/types";
+import {ApiError} from "@/lib/domain";
 import { adminClient } from "@/lib/supabase/server";
 import { messages } from "@/lib/domain";
 export async function POST(request: NextRequest) {
   const headers = {"Cache-Control":"private, no-store"};
   const origin = new URL(process.env.NEXT_PUBLIC_APP_URL || request.url).origin;
   if (request.headers.get("origin") !== origin) return NextResponse.json({code:"ORIGIN_NOT_ALLOWED",message:messages.ORIGIN_NOT_ALLOWED},{status:403,headers});
-  const p = await currentProfile().catch(()=>null);
-  if (!p) return NextResponse.json({code:"UNAUTHORIZED",message:messages.UNAUTHORIZED},{status:401,headers});
-  if (p.role === "student") return NextResponse.json({code:"FORBIDDEN",message:"Hanya pengajar atau admin yang dapat mengunggah gambar soal."},{status:403,headers});
+  let p:Profile;
+  try{p=await serverRequest<Profile>("media.authorize",{});}catch(error){const e=error instanceof ApiError?error:new ApiError("SERVER_ERROR",undefined,503);return NextResponse.json({code:e.code,message:e.message},{status:e.status,headers});}
   if (Number(request.headers.get("content-length") ?? 0) > 2200000) return NextResponse.json({message:"Maksimum gambar 2 MB."},{status:413,headers});
   const form = await request.formData(); const file = form.get("file");
   if (!(file instanceof File) || file.size > 2097152) return NextResponse.json({message:"Maksimum gambar 2 MB."},{status:422,headers});
@@ -21,10 +22,11 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({path},{headers});
 }
 export async function GET(request: NextRequest) {
-  const p = await currentProfile().catch(()=>null); const path = request.nextUrl.searchParams.get("path");
-  if (!p || !path) return new Response(null,{status:404});
-  const client = adminClient(); const {data:allowed} = await client.rpc("school_media_allowed",{p_actor:p.id,p_path:path});
+  const path = request.nextUrl.searchParams.get("path");
+  if(!path||path.length>200)return new Response(null,{status:404});
+  const allowed=await serverRequest<boolean>("media.allowed",{path}).catch(()=>false);
   if(!allowed) return new Response(null,{status:404});
+  const client=adminClient();
   const {data} = await client.storage.from("exam-media").createSignedUrl(path,900);
   if(!data) return new Response(null,{status:404});
   return NextResponse.redirect(data.signedUrl,{headers:{"Cache-Control":"private, no-store"}});

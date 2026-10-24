@@ -1,7 +1,7 @@
 "use client";
-import Link from "next/link";
+import Link from "@/components/navigation-link";
 import { useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+
 import { Upload, Save, FileDown } from "lucide-react";
 import { api, requestJson } from "@/lib/client";
 import { IMPORT_LIMITS, parseQuestionText, QUESTION_TEMPLATE, type ImportedQuestion, type ImportPreview } from "@/lib/question-import";
@@ -9,7 +9,7 @@ import { Notice } from "./ui";
 
 interface Batch { operation_id: string; questions: ImportedQuestion[] }
 export function QuestionImport() {
-  const router = useRouter();
+
   const [source, setSource] = useState(""), [preview, setPreview] = useState<ImportPreview | null>(null);
   const [selected, setSelected] = useState<number[]>([]), [busy, setBusy] = useState<"read" | "save" | null>(null);
   const [error, setError] = useState(""), [name, setName] = useState(""), [dirty, setDirty] = useState(false);
@@ -42,7 +42,7 @@ export function QuestionImport() {
     setBatch(payload); setBusy("save"); setError("");
     try {
       const result = await api<{ count: number }>("questions/import/commit", payload);
-      setSaved(result.count); router.refresh();
+      setSaved(result.count);
       requestAnimationFrame(() => resultRef.current?.focus());
     } catch (e) { setError(e instanceof Error ? e.message : "Penyimpanan belum dapat dipastikan. Coba simpan lagi dengan pilihan yang sama."); }
     finally { setBusy(null); }

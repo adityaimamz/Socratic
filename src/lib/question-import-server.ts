@@ -2,21 +2,19 @@ import "server-only";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { ApiError } from "./domain";
-import { currentProfile } from "./server";
-import { adminClient, configured } from "./supabase/server";
+import { serverRequest } from "./server";
+import { configured } from "./supabase/server";
+import type {Profile} from "./types";
 
 export const importHeaders = { "Cache-Control": "private, no-store" };
-export async function importActor(request: Request) {
+export function importOrigin(request:Request){
   if (!configured()) throw new ApiError("SETUP_REQUIRED", undefined, 503);
   const expected = new URL(process.env.NEXT_PUBLIC_APP_URL || request.url).origin;
   if (request.headers.get("origin") !== expected) throw new ApiError("ORIGIN_NOT_ALLOWED", undefined, 403);
-  const profile = await currentProfile();
-  if (!profile) throw new ApiError("UNAUTHORIZED", undefined, 401);
-  if (!profile.active || !["admin", "teacher"].includes(profile.role)) throw new ApiError("FORBIDDEN", undefined, 403);
-  const { data, error } = await adminClient().rpc("school_rate_limit", { p_actor: profile.id, p_lane: "write" });
-  if (error) throw new ApiError("SERVER_ERROR", undefined, 503);
-  if (!data) throw new ApiError("RATE_LIMITED", undefined, 429);
-  return profile;
+}
+export async function importActor(request: Request) {
+  importOrigin(request);
+  return serverRequest<Profile>("import.authorize",{});
 }
 // Bound streamed/chunked requests too; Content-Length alone is not a size guarantee.
 export async function readImportBody(request: Request, maxBytes: number) {

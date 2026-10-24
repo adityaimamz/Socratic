@@ -1,13 +1,15 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
+"use client";
+import Link from "@/components/navigation-link";
+
 import { ArrowLeft } from "lucide-react";
-import { workspace } from "@/lib/server";
+import {RemoteView} from "@/components/remote-view";
+import {use} from "react";
 import { formatDate } from "@/lib/domain";
 import { Header,Badge,Notice } from "@/components/ui";
 import { StartExam } from "@/components/start-exam";
 import { ExamRules } from "@/components/exam-rules";
-export default async function ExamDetail({params}:{params:Promise<{examId:string;step?:string[]}>}){
- const {examId,step}=await params;const w=await workspace();const e=w.exams.find(e=>e.id===examId);if(!e)notFound();const a=w.attempts.filter(a=>a.exam_id===e.id).at(-1);const active=a?.status==="in_progress"?a:undefined;
+export default function ExamDetail({params}:{params:Promise<{examId:string;step?:string[]}>}){
+ const {examId,step}=use(params);return <RemoteView key={step?.[0]??"rules"} view="exam-rules" params={{id:examId}}>{w=>{const e=w.exam;const a=w.attempts.filter(a=>a.exam_id===e.id).at(-1);const active=a?.status==="in_progress"?a:undefined;
  return <>
   <Link className="crumb" href="/dashboard"><ArrowLeft size={14}/>Ujian saya</Link>
   <Header title={e.title} description={`${e.question_count} soal · ${e.duration_minutes} menit · Jadwal dalam WIB`} action={<Badge tone={e.mode==="exam"?"warning":"neutral"}>{e.mode==="exam"?"Ujian ketat":"Kuis"}</Badge>}/>
@@ -19,6 +21,6 @@ export default async function ExamDetail({params}:{params:Promise<{examId:string
    <Notice title="Perhatikan batas waktu">Untuk ujian baru, waktu pengerjaan mengikuti durasi ujian atau sisa jadwal, mana yang lebih singkat. Contoh: durasi 60 menit, tetapi jadwal berakhir 20 menit lagi, berarti waktu pengerjaan hanya 20 menit. Jika ujian sudah dimulai, waktu tetap berjalan meskipun kamu menutup halaman.</Notice>
    <ExamRules mode={e.mode}/>
    {a?.status==="finalized"&&<Link className="btn" href={`/results/${a.id}`}>Lihat bukti dan hasil ujian terakhir</Link>}
-  </section><aside>{step?.[0]==="check"?<StartExam exam={e} settings={w.settings} activeAttempt={active}/>:<section className="panel stack"><h2>{active?"Lanjutkan ujianmu":"Siap mengerjakan?"}</h2><p>{active?"Waktu ujianmu masih berjalan. Periksa perangkat, lalu lanjutkan dengan sisa waktu yang tersedia.":"Baca petunjuk dan aturan di halaman ini, lalu periksa perangkatmu. Membaca aturan dan memeriksa perangkat belum memulai waktu ujian."}</p><Link className="btn primary" href={`/exams/${e.id}/check`}>{active?"Periksa dan lanjutkan":"Periksa kesiapan"}</Link><Link className="link" href="/privacy">Data pribadi dan aturan ujian</Link></section>}</aside></div>
+  </section><aside>{step?.[0]==="check"?<StartExam exam={e} settings={w.settings} activeAttempt={active} serverNow={w.server_now} fullscreenExempt={w.fullscreen_exempt}/>:<section className="panel stack"><h2>{active?"Lanjutkan ujianmu":"Siap mengerjakan?"}</h2><p>{active?"Waktu ujianmu masih berjalan. Periksa perangkat, lalu lanjutkan dengan sisa waktu yang tersedia.":"Baca petunjuk dan aturan di halaman ini, lalu periksa perangkatmu. Membaca aturan dan memeriksa perangkat belum memulai waktu ujian."}</p><Link className="btn primary" href={`/exams/${e.id}/check`}>{active?"Periksa dan lanjutkan":"Periksa kesiapan"}</Link><Link className="link" href="/privacy">Data pribadi dan aturan ujian</Link></section>}</aside></div>
  </>;
-}
+}}</RemoteView>;}

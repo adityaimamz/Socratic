@@ -1,13 +1,12 @@
 "use client";
 import {useRef,useState} from "react";
-import {useRouter} from "next/navigation";
 import {api} from "@/lib/client";
 import {hasAnswer} from "@/lib/domain";
 import type {GradingView,EssayGrade} from "@/lib/types";
 import {Notice} from "./ui";
 
 export function EssayGrading({data}:{data:GradingView}){
- const router=useRouter();const [busy,setBusy]=useState(false),[error,setError]=useState("");
+ const [busy,setBusy]=useState(false),[error,setError]=useState("");
  const operation=useRef<{id:string;payload:string}|null>(null);
  const complete=data.grading_status==="complete";
  async function submit(e:React.FormEvent<HTMLFormElement>){
@@ -15,7 +14,7 @@ export function EssayGrading({data}:{data:GradingView}){
   const grades:EssayGrade[]=data.items.map(item=>({item_id:item.id,points:Number(form.get(`points-${item.id}`)),feedback:String(form.get(`feedback-${item.id}`)??"").trim()}));
   const payload=JSON.stringify(grades);if(operation.current?.payload!==payload)operation.current={id:crypto.randomUUID(),payload};
   if(!window.confirm("Finalisasi seluruh skor esai? Skor tidak dapat diubah setelah diterima server."))return;
-  setBusy(true);setError("");try{await api(`manage/attempts/${data.attempt_id}/grading`,{operation_id:operation.current!.id,grades});router.refresh();}catch(e){setError(e instanceof Error?e.message:"Penilaian gagal disimpan. Coba lagi.");}finally{setBusy(false);}
+  setBusy(true);setError("");try{await api(`manage/attempts/${data.attempt_id}/grading`,{operation_id:operation.current!.id,grades});}catch(e){setError(e instanceof Error?e.message:"Penilaian gagal disimpan. Coba lagi.");}finally{setBusy(false);}
  }
  if(!data.items.length)return <Notice>Ujian ini tidak memiliki soal esai.</Notice>;
  return <form className="stack" onSubmit={e=>void submit(e)}>

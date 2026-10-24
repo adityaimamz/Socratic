@@ -33,7 +33,7 @@ test("question delete requires confirmation; cancellation and response-loss retr
   modal = await openDelete(page, label);
   await page.route("**/api/questions/delete", async route => { const response = await route.fetch(); expect(response.ok()).toBe(true); await route.abort("internetdisconnected"); }, { times: 1 });
   await modal.getByRole("button", { name: "Hapus permanen", exact: true }).click();
-  await expect(modal.getByRole("alert")).toContainText("Tidak dapat terhubung");
+  await expect(modal.getByRole("alert")).toContainText("Internet belum tersambung");
   await modal.getByRole("button", { name: "Hapus permanen", exact: true }).click();
   await expect(modal).toHaveCount(0); await expect(page.getByRole("link", { name: q.prompt, exact: true })).toHaveCount(0);
 });

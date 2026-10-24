@@ -2,19 +2,27 @@ import { ApiError } from "./domain";
 export async function requestJson<T>(url: string, options?: RequestInit): Promise<T> {
   let response: Response;
   try { response = await fetch(url, options); }
-  catch { throw new ApiError("NETWORK_ERROR"); }
+  catch (error) { if(options?.signal?.aborted)throw error;throw new ApiError("NETWORK_ERROR"); }
+  if(typeof window!=="undefined"){
+    const viewer=response.headers.get("X-Socratic-Viewer");
+    if(viewer)window.dispatchEvent(new CustomEvent("socratic:viewer",{detail:viewer}));
+    if(response.status===401)window.dispatchEvent(new Event("socratic:unauthorized"));
+  }
   let data;
   try { data = await response.json(); }
-  catch { throw new ApiError(response.status >= 500 ? "SERVER_ERROR" : "INVALID_RESPONSE", undefined, response.status); }
+  catch (error) {if(options?.signal?.aborted)throw error; throw new ApiError(response.status >= 500 ? "SERVER_ERROR" : "INVALID_RESPONSE", undefined, response.status); }
   if (!data || typeof data !== "object") throw new ApiError("INVALID_RESPONSE", undefined, response.status);
+  if(typeof window!=="undefined"&&response.status===403&&["ACCOUNT_DISABLED","INVITATION_REQUIRED"].includes(data.code))window.dispatchEvent(new CustomEvent("socratic:unauthorized",{detail:{status:403}}));
   if (!response.ok || data.ok === false) {
     const fallback = response.status === 401 ? "UNAUTHORIZED" : response.status === 429 ? "RATE_LIMITED" : "SERVER_ERROR";
     throw new ApiError(typeof data.code === "string" ? data.code : fallback, typeof data.message === "string" && data.message.trim() ? data.message : undefined, response.status);
   }
   return data as T;
 }
-export async function api<T>(path: string, body?: unknown, method="POST"): Promise<T> {
-  return requestJson<T>(`/api/${path}`, { method: body === undefined ? "GET" : method, headers: body === undefined ? {} : { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body), cache: "no-store" });
+export async function api<T>(path: string, body?: unknown, method="POST",signal?:AbortSignal): Promise<T> {
+  const result=await requestJson<T>(`/api/${path}`, { method: body === undefined ? "GET" : method, headers: body === undefined ? {} : { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body), cache: "no-store",signal });
+  if(body!==undefined&&typeof window!=="undefined")window.dispatchEvent(new CustomEvent("socratic:mutation",{detail:{path,result}}));
+  return result;
 }
 export function sessionId() {
   let value = sessionStorage.getItem("safe-exam-session");

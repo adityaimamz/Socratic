@@ -1,6 +1,6 @@
 import { after, NextRequest, NextResponse } from "next/server";
 import { ZodError } from "zod";
-import { currentProfile, rpc, withMedia } from "@/lib/server";
+import { serverRequest, withMedia, type RequestTiming } from "@/lib/server";
 import { adminClient, configured } from "@/lib/supabase/server";
 import { ApiError, csvCell, messages } from "@/lib/domain";
 import type { Attempt, Monitor } from "@/lib/types";
@@ -9,6 +9,7 @@ import {validationMessage} from "@/lib/validation";
 export const dynamic = "force-dynamic";
 function resolve(path: string[], method: string) {
   const key = path.join("/");
+  if(path[0]==="views"&&path.length===2&&method==="GET")return {action:`view.${path[1]}`,id:undefined};
   if (key === "workspace" && method === "GET") return { action: "workspace", id: undefined };
   if (key === "admin/health" && method === "GET") return { action: "admin.health", id: undefined };
   if (/^(questions|classes|exams)\/delete$/.test(key) && method === "POST") return { action: key.replace("/", "."), id: undefined };
@@ -26,7 +27,9 @@ function resolve(path: string[], method: string) {
   throw new ApiError("NOT_FOUND", undefined, 404);
 }
 async function handler(request: NextRequest, context: { params: Promise<{ path: string[] }> }) {
-  const headers = { "Cache-Control": "private, no-store" };
+  const timing:RequestTiming={};
+  const headers:Record<string,string> = { "Cache-Control": "private, no-store" };
+  const measured=()=>{headers["Server-Timing"]=Object.entries(timing).filter((entry):entry is [string,number]=>typeof entry[1]==="number").map(([name,ms])=>`${name};dur=${ms.toFixed(1)}`).join(", ");if(timing.viewer)headers["X-Socratic-Viewer"]=`${timing.viewer.id}:${timing.viewer.role}`;return headers;};
   const started=performance.now();let operation="unknown",failed=false;
   try {
     if (!configured()) throw new ApiError("SETUP_REQUIRED", undefined, 503);
@@ -36,8 +39,6 @@ async function handler(request: NextRequest, context: { params: Promise<{ path: 
       if (!origin || origin !== expected) throw new ApiError("ORIGIN_NOT_ALLOWED", undefined, 403);
       if (Number(request.headers.get("content-length") ?? 0) > 256000) throw new ApiError("PAYLOAD_TOO_LARGE", "Ukuran permintaan terlalu besar.", 413);
     }
-    const profile = await currentProfile();
-    if (!profile) throw new ApiError("UNAUTHORIZED", undefined, 401);
     const { path } = await context.params;
     const resolved = resolve(path,request.method);
     operation=resolved.action;
@@ -45,22 +46,21 @@ async function handler(request: NextRequest, context: { params: Promise<{ path: 
     if (typeof raw === "string" && raw.length > 256000) throw new ApiError("PAYLOAD_TOO_LARGE", undefined, 413);
     const body = typeof raw === "string" ? JSON.parse(raw) : raw;
     const payload = { ...body, ...(resolved.id ? { id: resolved.id } : {}), ...(resolved.item_id ? { item_id: resolved.item_id } : {}) };
-    const lane = resolved.action === "attempt.save" ? "answers" : resolved.action === "attempt.events" && body.type === "visibility_hidden" ? "reset" : resolved.action === "attempt.heartbeat" ? "heartbeat" : request.method === "GET" ? "read" : "write";
-    const { data: allowed, error: rateError } = await adminClient().rpc("school_rate_limit", { p_actor: profile.id, p_lane: lane });
-    if (rateError) throw new ApiError("SERVER_ERROR", undefined, 503);
-    if (!allowed) throw new ApiError("RATE_LIMITED", undefined, 429);
-    let data = await rpc<unknown>(profile,resolved.action,payload);
+    let data = await serverRequest<unknown>(resolved.action,payload,timing,resolved.action.startsWith("view.")?request.signal:undefined);
     if (data && typeof data === "object" && "ok" in data && data.ok === false && "code" in data) throw new ApiError(String(data.code),undefined,409);
-    if (resolved.action === "attempt.get" || resolved.action === "attempt.start" || resolved.action === "attempt.takeover" && data && typeof data === "object" && "items" in data) data = await withMedia(data as Attempt);
+    const mediaAt=performance.now();
+    if (["attempt.get","attempt.start","attempt.takeover"].includes(resolved.action) && data && typeof data === "object" && "items" in data) data = await withMedia(data as Attempt);
     if (resolved.action === "attempt.events") { const d = data as { attempt: Attempt }; d.attempt = await withMedia(d.attempt); }
+    timing.media=performance.now()-mediaAt;
     if (resolved.action === "attempt.submit") { const r=data as Record<string,unknown>; data={attempt_id:r.attempt_id,receipt_id:r.receipt_id,finalized_at:r.finalized_at,reason:r.reason}; }
     if (resolved.action === "manage.export") {
       const monitor = data as Monitor;
       const rows = [["ID peserta","Nama","Email","Ujian","Nilai","Status penilaian","Status","Selesai","Reset","Review"], ...monitor.attempts.map(a => [a.user_id,a.name,a.email,monitor.exam.title,a.result?.score ?? "",a.result?.grading_status==="pending"?"Menunggu penilaian":a.result?"Selesai":"",a.status,a.result?.finalized_at ?? "",a.reset_count,a.review?.decision ?? ""])];
       return new Response("\uFEFF" + rows.map(r => r.map(csvCell).join(",")).join("\r\n"), { headers: { ...headers, "Content-Type": "text/csv; charset=utf-8", "Content-Disposition": `attachment; filename="hasil-${resolved.id}.csv"` } });
     }
-    return NextResponse.json(data,{headers});
+    return NextResponse.json(data,{headers:measured()});
   } catch (error) {
+    measured();
     failed=!(error instanceof ZodError)&&!(error instanceof SyntaxError)&&(!(error instanceof ApiError)||error.status>=500);
     if (error instanceof ZodError) return NextResponse.json({code:"INVALID_INPUT",message:validationMessage(error)},{status:422,headers});
     if (error instanceof ApiError) return NextResponse.json({code:error.code,message:error.message},{status:error.status,headers});

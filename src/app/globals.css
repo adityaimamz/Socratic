@@ -225,11 +225,20 @@ td small { display: block; margin-top: 3px; }
 .question-preview { white-space: pre-wrap; font-size: 16px; overflow-wrap: anywhere; }
 .media { max-width: 100%; max-height: 320px; object-fit: contain; margin: 12px 0; }
 .spinner { width: 16px; height: 16px; border: 2px solid var(--control); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
-.navigation-loading { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 110; display: flex; align-items: center; gap: 10px; padding: 10px 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface); color: var(--text); white-space: nowrap; }
-.navigation-loading .spinner,.page-loading .spinner { flex: none; }
-.page-loading { display: flex; align-items: center; gap: 16px; min-height: 180px; }
-.page-loading h1 { font-size: 20px; }
-.page-loading p { margin-top: 4px; }
+.skeleton-panel { border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+.skeleton-block { background: var(--active); border-radius: 4px; animation: skeleton-pulse 1.4s ease-in-out infinite; }
+.skeleton-caption { width: 140px; height: 18px; margin-bottom: 12px; }
+.skeleton-row { display: flex; align-items: center; gap: 20px; min-height: 84px; border-bottom: 1px solid var(--rule); }
+.skeleton-row:last-child { border-bottom: 0; }
+.skeleton-lines { flex: 1; min-width: 0; }
+.skeleton-line { width: 72%; max-width: 360px; height: 14px; }
+.skeleton-detail { width: 46%; max-width: 220px; height: 10px; margin-top: 12px; }
+.skeleton-action { width: 52px; height: 28px; flex: none; }
+.list-controls { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.list-controls .field { flex: 1 1 220px; max-width: 400px; }
+.list-controls .actions { flex-wrap: wrap; }
+.picker-controls { gap: 10px; }
+@keyframes skeleton-pulse { 50% { opacity: .45; } }
 @keyframes spin { to { transform: rotate(360deg); } }
 .essay-answer textarea { min-height: 280px; line-height: 1.7; resize: vertical; }
 .essay-response { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 12px; padding: 18px; background: var(--raised); border-radius: 6px; color: var(--text); }

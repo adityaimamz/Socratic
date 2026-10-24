@@ -1,0 +1,523 @@
+{
+  "note": "Local isolated fixtures only. No production or hosted staging benchmark was performed. No credentials or answer bodies are recorded.",
+  "sql": {
+    "environment": "embedded PostgreSQL; SQL/index and payload evidence only",
+    "dataset": {
+      "questions": 10000,
+      "classes": 1000,
+      "exams": 1000
+    },
+    "views": {
+      "questions": {
+        "samples": 50,
+        "p50": 55.61959999999999,
+        "p95": 99.95139999999992,
+        "max": 157.09159999999974,
+        "bytes": 10441
+      },
+      "classes": {
+        "samples": 50,
+        "p50": 5.332599999999729,
+        "p95": 7.228599999998551,
+        "max": 7.712399999998524,
+        "bytes": 7140
+      },
+      "exams": {
+        "samples": 50,
+        "p50": 10.83770000000004,
+        "p95": 14.13090000000011,
+        "max": 20.09320000000116,
+        "bytes": 15194
+      },
+      "teacher-overview": {
+        "samples": 50,
+        "p50": 10.296399999999267,
+        "p95": 14.911799999999857,
+        "max": 25.481299999999464,
+        "bytes": 1875
+      }
+    },
+    "plans": {
+      "questions": {
+        "Plan": {
+          "Node Type": "Limit",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 0.29,
+          "Total Cost": 10.82,
+          "Plan Rows": 50,
+          "Plan Width": 43,
+          "Actual Startup Time": 0.12,
+          "Actual Total Time": 0.534,
+          "Actual Rows": 50,
+          "Actual Loops": 1,
+          "Disabled": false,
+          "Shared Hit Blocks": 52,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Index Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Scan Direction": "Forward",
+              "Index Name": "questions_owner_page",
+              "Relation Name": "questions",
+              "Alias": "questions",
+              "Startup Cost": 0.29,
+              "Total Cost": 2107.41,
+              "Plan Rows": 10000,
+              "Plan Width": 43,
+              "Actual Startup Time": 0.105,
+              "Actual Total Time": 0.309,
+              "Actual Rows": 50,
+              "Actual Loops": 1,
+              "Disabled": false,
+              "Index Cond": "(owner_id = '00000000-0000-4000-8000-000000000001'::uuid)",
+              "Rows Removed by Index Recheck": 0,
+              "Filter": "(NOT archived)",
+              "Rows Removed by Filter": 0,
+              "Index Searches": 1,
+              "Shared Hit Blocks": 52,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 0,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.329,
+        "Triggers": [],
+        "Execution Time": 0.821
+      },
+      "classes": {
+        "Plan": {
+          "Node Type": "Limit",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 0.28,
+          "Total Cost": 4.82,
+          "Plan Rows": 50,
+          "Plan Width": 43,
+          "Actual Startup Time": 0.05,
+          "Actual Total Time": 0.372,
+          "Actual Rows": 50,
+          "Actual Loops": 1,
+          "Disabled": false,
+          "Shared Hit Blocks": 50,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Index Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Scan Direction": "Forward",
+              "Index Name": "classes_owner_page",
+              "Relation Name": "classes",
+              "Alias": "classes",
+              "Startup Cost": 0.28,
+              "Total Cost": 91.21,
+              "Plan Rows": 1000,
+              "Plan Width": 43,
+              "Actual Startup Time": 0.043,
+              "Actual Total Time": 0.187,
+              "Actual Rows": 50,
+              "Actual Loops": 1,
+              "Disabled": false,
+              "Index Cond": "(owner_id = '00000000-0000-4000-8000-000000000001'::uuid)",
+              "Rows Removed by Index Recheck": 0,
+              "Index Searches": 1,
+              "Shared Hit Blocks": 50,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 0,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.198,
+        "Triggers": [],
+        "Execution Time": 0.477
+      },
+      "exams": {
+        "Plan": {
+          "Node Type": "Limit",
+          "Parallel Aware": false,
+          "Async Capable": false,
+          "Startup Cost": 0.28,
+          "Total Cost": 6.21,
+          "Plan Rows": 50,
+          "Plan Width": 43,
+          "Actual Startup Time": 0.043,
+          "Actual Total Time": 0.479,
+          "Actual Rows": 50,
+          "Actual Loops": 1,
+          "Disabled": false,
+          "Shared Hit Blocks": 50,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0,
+          "Plans": [
+            {
+              "Node Type": "Index Scan",
+              "Parent Relationship": "Outer",
+              "Parallel Aware": false,
+              "Async Capable": false,
+              "Scan Direction": "Forward",
+              "Index Name": "exams_owner_page",
+              "Relation Name": "exams",
+              "Alias": "exams",
+              "Startup Cost": 0.28,
+              "Total Cost": 118.96,
+              "Plan Rows": 1000,
+              "Plan Width": 43,
+              "Actual Startup Time": 0.038,
+              "Actual Total Time": 0.211,
+              "Actual Rows": 50,
+              "Actual Loops": 1,
+              "Disabled": false,
+              "Index Cond": "(owner_id = '00000000-0000-4000-8000-000000000001'::uuid)",
+              "Rows Removed by Index Recheck": 0,
+              "Index Searches": 1,
+              "Shared Hit Blocks": 50,
+              "Shared Read Blocks": 0,
+              "Shared Dirtied Blocks": 0,
+              "Shared Written Blocks": 0,
+              "Local Hit Blocks": 0,
+              "Local Read Blocks": 0,
+              "Local Dirtied Blocks": 0,
+              "Local Written Blocks": 0,
+              "Temp Read Blocks": 0,
+              "Temp Written Blocks": 0
+            }
+          ]
+        },
+        "Planning": {
+          "Shared Hit Blocks": 0,
+          "Shared Read Blocks": 0,
+          "Shared Dirtied Blocks": 0,
+          "Shared Written Blocks": 0,
+          "Local Hit Blocks": 0,
+          "Local Read Blocks": 0,
+          "Local Dirtied Blocks": 0,
+          "Local Written Blocks": 0,
+          "Temp Read Blocks": 0,
+          "Temp Written Blocks": 0
+        },
+        "Planning Time": 0.273,
+        "Triggers": [],
+        "Execution Time": 0.579
+      }
+    },
+    "legacyWorkspaceBytes": 7786162,
+    "questionsPayloadReduction": 0.9986590312402953
+  },
+  "browser": {
+    "environment": "production Next.js build + local embedded PostgreSQL fixture; not hosted Supabase or Vercel",
+    "coldDefinition": "First measured request for each view after server startup and login; not a hosting instance cold start.",
+    "profile": {
+      "rttMs": 150,
+      "downloadMbps": 10,
+      "uploadMbps": 1,
+      "cpuSlowdown": 4
+    },
+    "dataset": {
+      "extraQuestions": 1000,
+      "extraClasses": 100,
+      "extraAccounts": 500,
+      "extraExams": 100
+    },
+    "targets": {
+      "visualP95": 100,
+      "warmDataP95": 1000,
+      "readP95": 700,
+      "saveP95": 1000,
+      "resetP95": 2000
+    },
+    "cold": [
+      {
+        "view": "teacher-overview",
+        "ms": 764.6999999284744,
+        "bytes": 1860,
+        "timing": "auth;dur=21.9, db;dur=117.6, media;dur=0.0",
+        "status": 200
+      },
+      {
+        "view": "questions",
+        "ms": 183.89999997615814,
+        "bytes": 24747,
+        "timing": "auth;dur=3.1, db;dur=32.0, media;dur=0.0",
+        "status": 200
+      },
+      {
+        "view": "classes",
+        "ms": 179.79999995231628,
+        "bytes": 7042,
+        "timing": "auth;dur=2.2, db;dur=6.5, media;dur=0.0",
+        "status": 200
+      },
+      {
+        "view": "exams",
+        "ms": 211.20000004768372,
+        "bytes": 15091,
+        "timing": "auth;dur=13.5, db;dur=23.2, media;dur=0.0",
+        "status": 200
+      },
+      {
+        "view": "admin-users",
+        "ms": 185.69999992847443,
+        "bytes": 9576,
+        "timing": "auth;dur=6.6, db;dur=9.0, media;dur=0.0",
+        "status": 200
+      },
+      {
+        "view": "admin-settings",
+        "ms": 175.60000002384186,
+        "bytes": 166,
+        "timing": "auth;dur=2.0, db;dur=3.8, media;dur=0.0",
+        "status": 200
+      },
+      {
+        "view": "admin-audit",
+        "ms": 187.89999997615814,
+        "bytes": 3428,
+        "timing": "auth;dur=1.8, db;dur=4.2, media;dur=0.0",
+        "status": 200
+      },
+      {
+        "view": "student-dashboard",
+        "ms": 226.39999997615814,
+        "bytes": 780,
+        "timing": "auth;dur=29.9, db;dur=25.3, media;dur=0.0",
+        "status": 200
+      },
+      {
+        "view": "exam-rules?id=3b0f09a0-dbed-46ea-887e-db710b68787a",
+        "ms": 192.60000002384186,
+        "bytes": 840,
+        "timing": "auth;dur=5.2, db;dur=9.1, media;dur=0.0",
+        "status": 200
+      }
+    ],
+    "reads": {
+      "teacher-overview": {
+        "samples": 50,
+        "p50": 184.79999995231628,
+        "p95": 204.20000004768372,
+        "max": 484.7000000476837,
+        "bytes": 1860,
+        "exampleServerTiming": "auth;dur=2.7, db;dur=8.6, media;dur=0.0"
+      },
+      "questions": {
+        "samples": 50,
+        "p50": 185.70000004768372,
+        "p95": 197.79999995231628,
+        "max": 201.19999992847443,
+        "bytes": 24747,
+        "exampleServerTiming": "auth;dur=2.3, db;dur=23.7, media;dur=0.0"
+      },
+      "classes": {
+        "samples": 50,
+        "p50": 184,
+        "p95": 218.89999997615814,
+        "max": 240.70000004768372,
+        "bytes": 7042,
+        "exampleServerTiming": "auth;dur=9.0, db;dur=10.0, media;dur=0.0"
+      },
+      "exams": {
+        "samples": 50,
+        "p50": 190.30000007152557,
+        "p95": 237.39999997615814,
+        "max": 255.5,
+        "bytes": 15091,
+        "exampleServerTiming": "auth;dur=4.7, db;dur=15.8, media;dur=0.0"
+      },
+      "admin-users": {
+        "samples": 50,
+        "p50": 181.29999995231628,
+        "p95": 189.20000004768372,
+        "max": 194.89999997615814,
+        "bytes": 9576,
+        "exampleServerTiming": "auth;dur=1.7, db;dur=6.3, media;dur=0.0"
+      },
+      "admin-settings": {
+        "samples": 50,
+        "p50": 181.30000007152557,
+        "p95": 192.79999995231628,
+        "max": 193.89999997615814,
+        "bytes": 166,
+        "exampleServerTiming": "auth;dur=1.7, db;dur=3.6, media;dur=0.0"
+      },
+      "admin-audit": {
+        "samples": 50,
+        "p50": 182.5,
+        "p95": 200,
+        "max": 228.90000009536743,
+        "bytes": 3428,
+        "exampleServerTiming": "auth;dur=1.9, db;dur=5.2, media;dur=0.0"
+      },
+      "student-dashboard": {
+        "samples": 50,
+        "p50": 181.10000002384186,
+        "p95": 192.89999997615814,
+        "max": 197.80000007152557,
+        "bytes": 779.9,
+        "exampleServerTiming": "auth;dur=1.6, db;dur=2.8, media;dur=0.0"
+      },
+      "exam-rules?id=3b0f09a0-dbed-46ea-887e-db710b68787a": {
+        "samples": 50,
+        "p50": 180.89999997615814,
+        "p95": 187,
+        "max": 190,
+        "bytes": 840.9,
+        "exampleServerTiming": "auth;dur=1.8, db;dur=3.6, media;dur=0.0"
+      }
+    },
+    "writes": {
+      "save": {
+        "samples": 50,
+        "p50": 194,
+        "p95": 200,
+        "max": 201.69999992847443,
+        "bytes": 162.7
+      },
+      "reset": {
+        "samples": 50,
+        "p50": 193.29999995231628,
+        "p95": 205.10000002384186,
+        "max": 206.5,
+        "bytes": 4974.4
+      }
+    },
+    "navigation": {
+      "visual": {
+        "samples": 150,
+        "p50": 33.800000071525574,
+        "p95": 58.39999997615814,
+        "max": 137.29999995231628,
+        "bytes": 0
+      },
+      "data": {
+        "samples": 150,
+        "p50": 444.3000000715256,
+        "p95": 744.4000000953674,
+        "max": 1948.2000000476837,
+        "bytes": 0
+      },
+      "byRoute": {
+        "/manage/questions": {
+          "visual": {
+            "samples": 50,
+            "p50": 37.200000047683716,
+            "p95": 83.39999997615814,
+            "max": 137.29999995231628,
+            "bytes": 0
+          },
+          "data": {
+            "samples": 50,
+            "p50": 472,
+            "p95": 663.2000000476837,
+            "max": 1650.7999999523163,
+            "bytes": 0
+          }
+        },
+        "/manage/classes": {
+          "visual": {
+            "samples": 50,
+            "p50": 34.799999952316284,
+            "p95": 54.299999952316284,
+            "max": 74.5,
+            "bytes": 0
+          },
+          "data": {
+            "samples": 50,
+            "p50": 205.5,
+            "p95": 464.5,
+            "max": 498.5,
+            "bytes": 0
+          }
+        },
+        "/manage/exams": {
+          "visual": {
+            "samples": 50,
+            "p50": 27.799999952316284,
+            "p95": 41.300000071525574,
+            "max": 107.80000007152557,
+            "bytes": 0
+          },
+          "data": {
+            "samples": 50,
+            "p50": 547.2999999523163,
+            "p95": 888.3999999761581,
+            "max": 1948.2000000476837,
+            "bytes": 0
+          }
+        }
+      }
+    },
+    "violations": [],
+    "payloadComparison": {
+      "legacyWorkspaceBytes": 1088460,
+      "questionsPageBytes": 24747,
+      "note": "Both endpoints use the new Auth/RPC pipeline; this is a payload comparison, not a historical latency baseline."
+    },
+    "completedAt": "2026-10-24T11:50:35.805Z"
+  }
+}

@@ -18,7 +18,7 @@ export function DeleteButton({ kind, id, name, redirectTo, small = false }: { ki
     try {
       await api(`${kind}/delete`, { id, operation_id: operation.current });
       setOpen(false);
-      if (redirectTo) router.replace(redirectTo); else router.refresh();
+      if (redirectTo) router.replace(redirectTo);
     } catch (e) { setError(e instanceof Error ? e.message : "Penghapusan belum berhasil. Coba lagi."); }
     finally { inFlight.current = false; setBusy(false); }
   }
