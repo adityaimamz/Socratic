@@ -2,9 +2,9 @@ export type Role = "admin" | "teacher" | "student";
 export interface Profile { id: string; name: string; email: string; role: Role; active: boolean }
 export interface Option { id: string; text: string }
 export type QuestionKind = "mcq" | "essay";
-export interface Question { id: string; kind: QuestionKind; prompt: string; options: Option[]; correct_option_id: string | null; rubric: string; weight: number; tag: string; media_path: string | null; archived: boolean; version: number }
-export interface Exam { id: string; title: string; instructions: string; mode: "quiz" | "exam"; status: "draft" | "published" | "closed" | "archived"; opens_at: string; closes_at: string; duration_minutes: number; passing_score: number; penalty: number; class_id: string | null; question_ids: string[]; participant_emails: string[]; staff_ids: string[]; shuffle_questions: boolean; shuffle_options: boolean; score_released: boolean; review_released: boolean; question_count: number; can_manage: boolean }
-export interface SchoolClass { id: string; name: string; emails: string[] }
+export interface Question { id: string; owner_id?: string; kind: QuestionKind; prompt: string; options: Option[]; correct_option_id: string | null; rubric: string; weight: number; tag: string; media_path: string | null; archived: boolean; version: number }
+export interface Exam { id: string; owner_id?: string; title: string; instructions: string; mode: "quiz" | "exam"; status: "draft" | "published" | "closed" | "archived"; opens_at: string; closes_at: string; duration_minutes: number; passing_score: number; penalty: number; class_id: string | null; question_ids: string[]; participant_emails: string[]; staff_ids: string[]; shuffle_questions: boolean; shuffle_options: boolean; score_released: boolean; review_released: boolean; question_count: number; can_manage: boolean }
+export interface SchoolClass { id: string; owner_id?: string; name: string; emails: string[] }
 export interface AttemptSummary { id: string; exam_id: string; status: string; deadline_at: string; attempt_number: number }
 export interface Workspace { profile: Profile; settings: Settings; exams: Exam[]; classes: SchoolClass[]; questions: Question[]; attempts: AttemptSummary[]; users: Profile[]; invitations: {email: string; name: string; role: Role; accepted_by: string | null}[]; audit: Audit[]; server_now: string }
 export interface Settings { institution: string; timezone: string; result_retention_days: number; event_retention_days: number; audit_retention_days: number }

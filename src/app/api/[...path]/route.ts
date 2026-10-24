@@ -11,6 +11,7 @@ function resolve(path: string[], method: string) {
   const key = path.join("/");
   if (key === "workspace" && method === "GET") return { action: "workspace", id: undefined };
   if (key === "admin/health" && method === "GET") return { action: "admin.health", id: undefined };
+  if (/^(questions|classes|exams)\/delete$/.test(key) && method === "POST") return { action: key.replace("/", "."), id: undefined };
   if(path[0]==="exams"&&path.length===3&&path[2]==="accommodation")return {action:`exams.accommodation.${method==="GET"?"get":"set"}`,id:path[1]};
   if (/^(classes|questions|exams|admin)\/(save|archive|invite|user|settings)$/.test(key) && method === "POST") return { action: key.replace("/", "."), id: undefined };
   if (path[0] === "exams" && path.length === 3 && method === "POST") return { action: path[2] === "attempts" ? "attempt.start" : `exams.${path[2]}`, id: path[1] };

@@ -1,4 +1,8 @@
 export const messages: Record<string, string> = {
+  QUESTION_IN_USE: "Soal ini masih dipakai dalam ujian. Lepaskan dari draft terlebih dahulu. Untuk soal yang sudah dipakai ujian terbit, gunakan Arsip agar riwayat tetap tersedia.",
+  CLASS_IN_USE: "Kelas ini masih terhubung ke ujian. Lepaskan kelas dari draft atau hapus draft tersebut terlebih dahulu. Kelas yang dipakai ujian terbit harus dipertahankan.",
+  DRAFT_ONLY: "Hanya ujian berstatus draft yang dapat dihapus. Ujian yang sudah diterbitkan beserta riwayatnya tetap dipertahankan.",
+  EXAM_HAS_ATTEMPTS: "Draft ini memiliki sesi peserta dan tidak dapat dihapus. Hubungi admin untuk memeriksa riwayatnya.",
   ORIGIN_NOT_ALLOWED: "Alamat halaman ini tidak sesuai dengan alamat aplikasi yang diizinkan. Buka tautan resmi dari lembaga. Jika tetap gagal, minta admin memeriksa pengaturan alamat aplikasi.",
   NETWORK_ERROR: "Tidak dapat terhubung ke layanan. Periksa koneksi internet, lalu coba lagi.",
   SERVER_ERROR: "Layanan sedang mengalami gangguan. Coba lagi beberapa saat. Jika berulang, hubungi admin lembaga.",

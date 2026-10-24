@@ -12,3 +12,4 @@ playwright-report/
 skills-lock.json
 supabase/.temp/
 .local/
+.vercel/

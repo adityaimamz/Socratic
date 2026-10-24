@@ -31,7 +31,7 @@ export async function rpc<T>(profile: Profile, action: string, input: unknown): 
   const request=action==="admin.health" ? client.rpc("school_health",{p_actor:profile.id}) : action==="exams.accommodation.get" ? client.rpc("school_accommodation_get",{p_actor:profile.id,p_exam:p.id}) : action==="exams.accommodation.set" ? client.rpc("school_accommodation_set",{p_actor:profile.id,p_exam:p.id,p_email:p.email,p_exempt:p.fullscreen_exempt,p_reason:p.reason}) : client.rpc("school_api", { p_actor: profile.id, p_action: action, p_data: payload });
   const {data,error}=await request;
   if (error) {
-    const code = error.message.match(/\b(?:GRADING_PENDING|GRADE_FINALIZED|INVALID_GRADE|ATTEMPT_ACTIVE|UNAUTHORIZED|FORBIDDEN|NOT_FOUND|STALE_SESSION|ANSWER_EPOCH_MISMATCH|REVISION_CONFLICT|ATTEMPT_FINALIZED|DEADLINE_PASSED|EXAM_NOT_OPEN|ATTEMPT_LIMIT|EXAM_IMMUTABLE|INVALID_QUESTION|INVALID_EXAM|INVALID_ANSWER|REVIEW_TOO_EARLY|REASON_REQUIRED|CANNOT_EDIT_SELF|RETAKE_NOT_ALLOWED|NO_TAKEOVER_REQUEST|IDEMPOTENCY_CONFLICT|RATE_LIMITED)\b/)?.[0];
+    const code = error.message.match(/\b(?:QUESTION_IN_USE|CLASS_IN_USE|DRAFT_ONLY|EXAM_HAS_ATTEMPTS|GRADING_PENDING|GRADE_FINALIZED|INVALID_GRADE|ATTEMPT_ACTIVE|UNAUTHORIZED|FORBIDDEN|NOT_FOUND|STALE_SESSION|ANSWER_EPOCH_MISMATCH|REVISION_CONFLICT|ATTEMPT_FINALIZED|DEADLINE_PASSED|EXAM_NOT_OPEN|ATTEMPT_LIMIT|EXAM_IMMUTABLE|INVALID_QUESTION|INVALID_EXAM|INVALID_ANSWER|REVIEW_TOO_EARLY|REASON_REQUIRED|CANNOT_EDIT_SELF|RETAKE_NOT_ALLOWED|NO_TAKEOVER_REQUEST|IDEMPOTENCY_CONFLICT|RATE_LIMITED)\b/)?.[0];
     throw new ApiError(code ?? "SERVER_ERROR", undefined, code === "NOT_FOUND" ? 404 : code === "UNAUTHORIZED" ? 401 : code === "FORBIDDEN" ? 403 : code === "RATE_LIMITED" ? 429 : code ? 409 : 500);
   }
   return data as T;

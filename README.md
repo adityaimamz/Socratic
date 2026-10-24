@@ -22,6 +22,10 @@ Token pengelolaan dan email bootstrap hanya dibutuhkan untuk penyiapan. Deployme
 
 Pengajar membuat kelas dan bank soal pilgan/esai, menyusun draft ujian, memeriksa preview, lalu menerbitkannya. Peserta membuka ujian yang ditugaskan dan menyetujui aturan sebelum mulai. Jawaban tersimpan otomatis; monitoring menampilkan progres dan insiden. Pilgan dinilai server; esai menunggu skor manual pengajar sebelum nilai akhir tersedia. Exam menahan nilai sampai dirilis pengajar. Pembahasan hanya dapat dirilis setelah seluruh deadline selesai. Lihat [alur penilaian esai](docs/ESSAY.md).
 
+Bank soal mendukung [impor TXT, Markdown, dan PDF teks](docs/QUESTION_IMPORT.md), dengan editor, pratinjau, validasi per soal, dan pemilihan sebelum simpan. Contoh format tersedia pada halaman impor.
+
+[Hapus soal, kelas, dan draft ujian](docs/DELETE.md) tersedia dengan konfirmasi, audit, dan pembatasan data yang masih dipakai. Ujian yang sudah diterbitkan beserta sesi/hasilnya tetap dipertahankan.
+
 ## Validasi
 
 | Perintah | Cakupan |
@@ -43,6 +47,7 @@ Jalankan `npm run seed:demo` untuk menambahkan akun semua peran, kelas, bank soa
 
 - [PRD](docs/PRD.md) dan [rencana implementasi](docs/PLAN.md).
 - [Konfigurasi Supabase](docs/SUPABASE.md) dan [Google OAuth](docs/GOOGLE_OAUTH.md).
+- [Deployment Vercel](docs/VERCEL.md), environment produksi, dan callback Auth.
 - [Operasional, pengujian beban, dan gate pilot](docs/OPERATIONS.md).
 
 Deteksi browser bergantung pada Page Visibility dan koneksi peserta. Ini tidak menjamin deteksi perangkat kedua, seluruh cara menyontek, atau telemetri browser yang dimanipulasi. Insiden yang baru diterima setelah finalisasi dicatat untuk review dan tidak mengubah hasil final.

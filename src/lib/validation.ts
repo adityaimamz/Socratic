@@ -14,6 +14,9 @@ const schemas = {
   "classes.save": z.object({ id: uuid.optional(), name: z.string().trim().min(2).max(100), emails: z.array(email).max(1000) }),
   "questions.save": z.object({ id: uuid.optional(), kind: z.enum(["mcq","essay"]).default("mcq"), prompt: z.string().trim().min(3).max(10000), options: z.array(option).max(6).default([]), correct_option_id: uuid.nullable().default(null), rubric: z.string().trim().max(10000).default(""), weight: z.number().positive().max(1000), tag: z.string().max(100), media_path: z.string().regex(/^[0-9a-f-]{36}\/[0-9a-f-]{36}\.(png|jpeg|webp)$/).nullable().optional() }).refine(q => q.kind === "essay" ? q.options.length === 0 && q.correct_option_id === null : q.options.length >= 2 && new Set(q.options.map(o => o.id)).size === q.options.length && q.options.some(o => o.id === q.correct_option_id), "Esai tidak memiliki opsi/kunci pilihan. Pilgan memerlukan 2–6 opsi unik dan satu kunci."),
   "questions.archive": z.object(id),
+  "questions.delete": z.object({ ...id, operation_id: uuid }),
+  "classes.delete": z.object({ ...id, operation_id: uuid }),
+  "exams.delete": z.object({ ...id, operation_id: uuid }),
   "exams.save": z.object({ id: uuid.optional(), title: z.string().trim().min(3).max(150), instructions: z.string().max(10000), class_id: uuid.nullable(), mode: z.enum(["quiz", "exam"]), opens_at: z.iso.datetime(), closes_at: z.iso.datetime(), duration_minutes: z.number().int().min(1).max(480), passing_score: z.number().min(0).max(100), penalty: z.number().min(0).max(1000), shuffle_questions: z.boolean(), shuffle_options: z.boolean(), question_ids: z.array(uuid).max(100), participant_emails: z.array(email).max(1000) }).refine(e => Date.parse(e.closes_at) > Date.parse(e.opens_at), "Waktu tutup harus setelah waktu buka.").refine(e => new Set(e.question_ids).size === e.question_ids.length, "Soal tidak boleh berulang."),
   "exams.publish": z.object(id), "exams.close": z.object(id),
   "exams.staff": z.object({ ...id, staff_ids: z.array(uuid).max(20) }),
@@ -30,6 +33,11 @@ const schemas = {
   "manage.action": z.object({ ...id, action: z.enum(["extend", "terminate", "approve_takeover", "retake", "review"]), reason: z.string().trim().min(5).max(1000), minutes: z.number().int().min(1).max(60).optional(), decision: z.enum(["flagged", "cleared", "confirmed", "inconclusive", "invalidated"]).optional() }).refine(v => v.action !== "extend" || v.minutes !== undefined, "Isi tambahan menit.").refine(v => v.action !== "review" || v.decision !== undefined, "Pilih keputusan review.")
 };
 export type Action = keyof typeof schemas;
+export const questionSchema = schemas["questions.save"];
+export const questionImportSchema = z.object({
+  operation_id: uuid,
+  questions: z.array(questionSchema.refine(q => q.id === undefined && q.media_path == null, "Impor hanya boleh menambah soal baru tanpa gambar.")).min(1).max(100)
+});
 export function parseAction(action: string, input: unknown) {
   if (!(action in schemas)) throw new Error("NOT_FOUND");
   return schemas[action as Action].parse(input,{error:z.locales.id().localeError});

@@ -37,6 +37,7 @@ const server=createServer(async(req,res)=>{res.setHeader('Content-Type','applica
   if(state==='empty')for(const key of ['exams','questions','classes','attempts','users','invitations','audit'])result[key]=[];
  }
  else if(name==='school_accept'){const r=await db.query('select public.school_accept($1,$2,$3) result',[p.p_actor,p.p_email,p.p_name]);result=r.rows[0].result;}
+ else if(name==='school_import_questions'){result=(await db.query('select public.school_import_questions($1,$2,$3::jsonb) result',[p.p_actor,p.p_operation,JSON.stringify(p.p_questions)])).rows[0].result;}
  else if(name==='school_rate_limit'){const r=await db.query('select public.school_rate_limit($1,$2) result',[p.p_actor,p.p_lane]);result=r.rows[0].result;}
  else if(name==='school_media_allowed')result=false;
  else if(name==='school_record_metric'){await db.query('select public.school_record_metric($1,$2,$3)',[p.p_operation,p.p_elapsed,p.p_failed]);result=null;}
