@@ -344,6 +344,13 @@ td small { display: block; margin-top: 3px; }
 
 .exam-rules-list { margin:0; padding-left:24px; display:grid; gap:12px; }
 
+/* Never animate concealment: hide questions and open dialogs immediately. */
+.runner[data-capture-covered="true"] > :not(.capture-shield),
+.runner[data-capture-covered="true"] > :not(.capture-shield) * { visibility:hidden !important; }
+@media print {
+ .runner[data-capture-protected="true"] { display:none !important; }
+}
+
 /* Import uses the existing Socratic sheet; each row keeps question, key and errors together. */
 .import-flow,.import-result { display:grid; gap:24px; min-width:0; align-items:start; }
 .import-flow { grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr); }
