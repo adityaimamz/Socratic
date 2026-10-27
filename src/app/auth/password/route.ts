@@ -4,6 +4,7 @@ import {passwordAction} from "@/lib/auth-validation";
 import {authClient,adminClient,configured} from "@/lib/supabase/server";
 import {currentProfile} from "@/lib/server";
 import {messages} from "@/lib/domain";
+import {classLinkPreview,rememberJoin} from "@/lib/class-links-server";
 const generic=messages.AUTH_FAILED;
 export async function POST(request:Request){
  const reply=(data:unknown,status=200)=>NextResponse.json(data,{status,headers:{"Cache-Control":"private, no-store"}});
@@ -29,20 +30,27 @@ export async function POST(request:Request){
   }
   const {data:admitted,error:admissionError}=await adminClient().rpc("school_auth_allowed",{p_email:data.email});
   if(admissionError)return fail("SERVER_ERROR",503);
+  const token="join_token" in data?data.join_token:undefined;
+  const joining=token?await classLinkPreview(token):null;
+  if(token&&!joining)return fail("JOIN_LINK_UNAVAILABLE",409);
   if(data.mode==="login"){
-   if(!admitted)return fail("AUTH_FAILED",401,generic);
+   if(!admitted&&!joining)return fail("AUTH_FAILED",401,generic);
    const {error}=await auth.auth.signInWithPassword({email:data.email,password:data.password});
    if(error)return fail("AUTH_FAILED",401,generic);
-   try{if(!await currentProfile()){await auth.auth.signOut();return fail("AUTH_FAILED",401,generic);}}catch{await auth.auth.signOut();return fail("AUTH_FAILED",401,generic);}
-   return reply({ok:true,redirect:"/dashboard"});
+   if(!joining){try{if(!await currentProfile()){await auth.auth.signOut();return fail("AUTH_FAILED",401,generic);}}catch{await auth.auth.signOut();return fail("AUTH_FAILED",401,generic);}}
+   if(token&&joining)await rememberJoin(token);
+   return reply({ok:true,redirect:joining?`/join/${token}`:"/dashboard"});
   }
   // Registration and recovery never reveal whether an address is invited.
-  if(admitted){
+  if(admitted||joining){
    // Keep the same public response for invited and unknown addresses.
    // A provider error must not be described as a confirmed email delivery.
-   const result=data.mode==="register"?await auth.auth.signUp({email:data.email,password:data.password,options:{data:{full_name:data.name},emailRedirectTo:`${base}/auth/callback`}}):await auth.auth.resetPasswordForEmail(data.email,{redirectTo:`${base}/auth/callback?next=reset-password`});
+   if(token&&joining)await rememberJoin(token);
+   const result=data.mode==="register"?await auth.auth.signUp({email:data.email,password:data.password,options:{data:{full_name:data.name},emailRedirectTo:joining?`${base}/auth/callback?next=${encodeURIComponent(`/join/${token}`)}`:`${base}/auth/callback`}}):await auth.auth.resetPasswordForEmail(data.email,{redirectTo:`${base}/auth/callback?next=reset-password`});
+   if(data.mode==="register"&&joining&&result.data&&"session" in result.data&&result.data.session)return reply({ok:true,redirect:`/join/${token}`});
    if(result.error)console.error("[auth-email]",{mode:data.mode,code:result.error.code??"unknown",status:result.error.status});
   }
+  if(data.mode==="register"&&joining)return reply({ok:true,message:"Permintaan pendaftaran diterima. Periksa email pengaktifan akun di kotak masuk atau spam, lalu buka tautannya untuk bergabung ke kelas. Jika akun sudah ada, masuk dengan kata sandimu. Jika tidak ada email, minta pengajar memeriksa layanan email."});
   return reply({ok:true,message:data.mode==="register"?"Permintaan pendaftaran diterima. Email pengaktifan akun hanya dapat dikirim jika emailmu sudah didaftarkan dan layanan email tersedia. Periksa kotak masuk dan spam. Jika tidak ada email, minta pengajar memeriksa pendaftaran akun dan pengiriman email. Jika akun sudah ada, gunakan Lupa kata sandi.":"Permintaan ganti kata sandi diterima. Jika akunmu terdaftar dan layanan email tersedia, tautan ganti kata sandi akan dikirim. Periksa kotak masuk dan spam. Jika tidak ada email, minta pengajar memeriksa akun dan pengiriman email."});
  }catch(error){return error instanceof SyntaxError?fail("INVALID_INPUT",422,"Data tidak dapat dibaca. Periksa isian, lalu kirim kembali."):fail("SERVER_ERROR",503);}
 }

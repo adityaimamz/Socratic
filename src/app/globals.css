@@ -376,3 +376,13 @@ td small { display: block; margin-top: 3px; }
 .import-save .btn { flex-shrink:0; }
 @media(max-width:1100px) { .import-flow { grid-template-columns:minmax(0,1fr); } }
 @media(max-width:760px) { .import-save { align-items:stretch; flex-direction:column; gap:16px; } .import-flow { gap:16px; } }
+
+/* Join uses the same bounded form column on desktop and phone. */
+.join-wrap{min-height:100svh;display:grid;place-items:center;padding:32px 20px;background:var(--ground)}
+.join-card{width:100%;max-width:520px;padding:32px;border:1px solid var(--border);background:var(--surface);border-radius:12px}
+.join-card h1{font-size:26px;line-height:1.25;letter-spacing:-.5px}
+.join-card .login-alternative{margin:0}
+.join-class-name{margin-top:12px;overflow-wrap:anywhere}
+.class-join-link{margin-top:28px;padding-top:24px;border-top:1px solid var(--border)}
+.class-join-link .form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media(max-width:520px){.join-wrap{padding:16px}.join-card{padding:24px}.class-join-link .form-grid{grid-template-columns:1fr}}

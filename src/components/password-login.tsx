@@ -15,7 +15,7 @@ async function passwordRequest(body:unknown){
  return requestJson<AuthReply>("/auth/password",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
 }
 
-export function PasswordLogin({ready}:{ready:boolean}){
+export function PasswordLogin({ready,joinToken}:{ready:boolean;joinToken?:string}){
  const [mode,setMode]=useState<"login"|"register"|"recover">("login");
  const [busy,setBusy]=useState(false),[error,setError]=useState<Feedback|null>(null),[message,setMessage]=useState<Feedback|null>(null),[loginEmail,setLoginEmail]=useState("");
  const router=useRouter(),passwordRef=useRef<HTMLInputElement>(null),feedbackRef=useRef<HTMLDivElement>(null);
@@ -26,7 +26,7 @@ export function PasswordLogin({ready}:{ready:boolean}){
   if(mode==="register"&&f.get("password")!==f.get("confirmation")){setError({title:"Kata sandi belum sama",message:"Isi kedua kolom kata sandi dengan tulisan yang sama, lalu coba lagi."});return;}
   setBusy(true);
   try{
-   const d=await passwordRequest({mode,email:f.get("email"),password:f.get("password"),name:f.get("name")});
+   const d=await passwordRequest({mode,email:f.get("email"),password:f.get("password"),name:f.get("name"),...(joinToken&&mode!=="recover"?{join_token:joinToken}:{})});
    if(d.redirect){router.replace(d.redirect);router.refresh();}
    else{
     if(mode==="register"){setLoginEmail(String(f.get("email")??""));setMode("login");}
@@ -42,7 +42,7 @@ export function PasswordLogin({ready}:{ready:boolean}){
   <form className="form" onSubmit={e=>void submit(e)} key={mode} aria-busy={busy}>
    {mode==="register"&&<div className="field"><label htmlFor="login-name">Nama</label><input id="login-name" name="name" autoComplete="name" minLength={2} maxLength={100} required disabled={busy||!ready}/></div>}
    <div className="field"><label htmlFor="login-email">Email</label><input id="login-email" name="email" type="email" autoComplete="email" defaultValue={mode==="login"?loginEmail:""} required maxLength={254} disabled={busy||!ready}/></div>
-   {mode!=="recover"&&<div className="field"><label htmlFor="login-password">Kata sandi</label><input ref={passwordRef} id="login-password" name="password" type="password" autoComplete={mode==="login"?"current-password":"new-password"} minLength={mode==="register"?10:1} maxLength={128} required disabled={busy||!ready}/>{mode==="register"&&<small>Minimal 10 huruf, angka, atau tanda baca. Gunakan email yang sudah didaftarkan pengajar.</small>}</div>}
+   {mode!=="recover"&&<div className="field"><label htmlFor="login-password">Kata sandi</label><input ref={passwordRef} id="login-password" name="password" type="password" autoComplete={mode==="login"?"current-password":"new-password"} minLength={mode==="register"?10:1} maxLength={128} required disabled={busy||!ready}/>{mode==="register"&&<small>{joinToken?"Minimal 10 huruf, angka, atau tanda baca. Verifikasi email untuk bergabung ke kelas.":"Minimal 10 huruf, angka, atau tanda baca. Gunakan email yang sudah didaftarkan pengajar."}</small>}</div>}
    {mode==="register"&&<div className="field"><label htmlFor="password-confirmation">Ulangi kata sandi</label><input id="password-confirmation" name="confirmation" type="password" autoComplete="new-password" required minLength={10} maxLength={128} disabled={busy||!ready}/></div>}
    <div ref={feedbackRef} tabIndex={-1} className="form-feedback" aria-label="Hasil permintaan">{error&&<Notice tone="error" title={error.title}>{error.message}</Notice>}{message&&<Notice title={message.title}>{message.message}</Notice>}</div>
    <button className="btn primary" disabled={busy||!ready}>{busy?"Memproses…":mode==="login"?"Masuk dengan email":mode==="register"?"Buat akun":"Kirim tautan ganti sandi"}</button>

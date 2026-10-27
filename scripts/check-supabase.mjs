@@ -21,7 +21,10 @@ try{
  const scopedReady=!scopedError&&typeof scoped?.ok==='boolean';
  console.log(`Migrasi fetch/navigation (13): ${scopedReady?'tersedia':'belum tersedia — jalankan npm run supabase:migrate sebelum deploy'}`);
  if(scopedError)console.log(`Kode pemeriksaan RPC baru: ${scopedError.code??'unknown'}`);
+ const {error:joinError}=await admin.rpc('school_class_link_preview',{p_hash:'0'.repeat(64)});
+ const joinReady=!joinError;
+ console.log(`Migrasi link kelas (14): ${joinReady?'tersedia':'belum tersedia ; jalankan npm run supabase:migrate sebelum deploy'}`);
  const {data:bucket,error:bucketError}=await admin.storage.getBucket('exam-media');
  console.log(`Storage exam-media: ${bucketError?'belum tersedia':bucket.public?'PERLU DIUBAH MENJADI PRIVAT':'privat'}`);
- if(userError||!exists||!scopedReady||bucketError||bucket.public)process.exitCode=1;
+ if(userError||!exists||!scopedReady||!joinReady||bucketError||bucket.public)process.exitCode=1;
 }catch(error){console.error(`Pemeriksaan jaringan gagal: ${error.cause?.code??error.name}. Nilai kredensial tidak ditampilkan.`);process.exitCode=1;}

@@ -48,7 +48,7 @@ Akun harus terdaftar dan aktif. Berhasil masuk dengan Google atau email tidak ot
 ### Akun dan akses
 
 - Masuk melalui email dan kata sandi atau akun Google, sesuai layanan masuk yang diaktifkan lembaga.
-- Pendaftaran menggunakan email yang sudah diizinkan melalui undangan aplikasi.
+- Pendaftaran menggunakan email yang sudah diizinkan melalui undangan aplikasi, atau link undangan kelas yang masih berlaku.
 - Konfirmasi email dan permintaan tautan untuk mengganti kata sandi.
 - Pengaturan peran dan status aktif akun oleh admin.
 - Pemeriksaan akses pada sistem, sehingga mengganti alamat halaman atau menyembunyikan tombol bukan cara untuk memperoleh hak tambahan.
@@ -58,6 +58,8 @@ Undangan aplikasi berarti pemberian izin akses. Menambahkan email ke daftar unda
 ### Kelas dan peserta
 
 - Membuat dan memperbarui kelas berdasarkan daftar email siswa.
+- Mengundang murid melalui link kelas tanpa memasukkan email satu per satu. Pada **Kelas & peserta**, buka kelas yang sudah disimpan, lalu **Buat link undangan** dan **Salin link**. Bagikan link kepada murid; setelah daftar/login dan verifikasi email, murid otomatis bergabung sebagai peserta.
+- Link berlaku 1–30 hari (default 7 hari), dengan batas 1–1.000 peserta baru (default 40). Pengajar pemilik kelas atau admin dapat mengganti atau menonaktifkannya. Mengganti link langsung membatalkan link lama; anggota yang sudah bergabung tetap tersimpan. Link hanya ditampilkan saat dibuat, sehingga perlu disalin saat itu.
 - Menggabungkan anggota kelas dengan peserta tambahan pada suatu ujian.
 - Menambahkan peserta tanpa harus memasukkan mereka ke kelas terlebih dahulu.
 - Menugaskan pengajar sebagai pengawas ujian melalui akun admin.

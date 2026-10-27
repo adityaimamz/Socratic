@@ -2,7 +2,7 @@ import {createServer} from "node:http";
 import {spawn} from "node:child_process";
 import {test,expect} from "vitest";
 
-async function readiness(scopedAvailable:boolean){
+async function readiness(scopedAvailable:boolean,joinAvailable=true){
  const server=createServer((request,response)=>{
   response.setHeader("Content-Type","application/json");
   if(request.url?.startsWith("/auth/v1/settings"))response.end(JSON.stringify({external:{email:true,google:true}}));
@@ -11,6 +11,8 @@ async function readiness(scopedAvailable:boolean){
   else if(request.url==="/rest/v1/rpc/school_request"){
    response.statusCode=scopedAvailable?200:404;
    response.end(JSON.stringify(scopedAvailable?{ok:false,code:"INVITATION_REQUIRED"}:{code:"PGRST202",message:"Could not find public.school_request"}));
+  }else if(request.url==="/rest/v1/rpc/school_class_link_preview"){
+   response.statusCode=joinAvailable?200:404;response.end(JSON.stringify(joinAvailable?null:{code:"PGRST202"}));
   }else if(request.url==="/storage/v1/bucket/exam-media")response.end(JSON.stringify({id:"exam-media",public:false}));
   else{response.statusCode=404;response.end("{}");}
  });
@@ -27,4 +29,8 @@ test("deployment readiness fails when the old RPC exists but the new migration i
 });
 test("deployment readiness accepts the migrated service-only RPC",async()=>{
  const result=await readiness(true);expect(result.code).toBe(0);expect(result.output).toContain("Migrasi fetch/navigation (13): tersedia");expect(result.output).not.toContain("test-secret-do-not-log");
+});
+
+test("deployment readiness rejects missing class join link migration",async()=>{
+ const result=await readiness(true,false);expect(result.code).toBe(1);expect(result.output).toContain("Migrasi link kelas (14): belum tersedia");
 });

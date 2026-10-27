@@ -19,7 +19,9 @@ if(process.env.PERFORMANCE_FIXTURE==='1'){
  await db.query("insert into private.memberships(class_id,email) select $1,email from private.profiles where email like 'performance-%'",[c.id]);
  await db.query("insert into private.exams(owner_id,title,mode,opens_at,closes_at,duration_minutes) select $1,'Draft performa '||n,'quiz',now(),now()+interval '1 day',60 from generate_series(1,100) n",[ids.teacher]);
 }
-function user(id){const p=profiles.find(p=>p.id===id);if(!p)return null;return {id:p.id,email:p.email,aud:'authenticated',role:'authenticated',email_confirmed_at:'2026-01-01T00:00:00Z',confirmed_at:'2026-01-01T00:00:00Z',created_at:'2026-01-01T00:00:00Z',app_metadata:{provider:'email',providers:['email']},user_metadata:{full_name:p.name},identities:[{id:p.id,user_id:p.id,provider:'email',identity_data:{email:p.email}}]};}
+const extraAuth=new Map(),confirmationLinks=new Map(),authCodes=new Map();
+function authReply(profile){const u=user(profile.id);const token=[{alg:'HS256',typ:'JWT'},{sub:u.id,aud:'authenticated',role:'authenticated',exp:Math.floor(Date.now()/1000)+86400}].map(x=>Buffer.from(JSON.stringify(x)).toString('base64url')).join('.')+'.fixture';return {access_token:token,refresh_token:'fixture-refresh',token_type:'bearer',expires_in:86400,user:u};}
+function user(id){const p=profiles.find(p=>p.id===id)||extraAuth.get(id);if(!p)return null;return {id:p.id,email:p.email,aud:'authenticated',role:'authenticated',email_confirmed_at:p.confirmed===false?null:'2026-01-01T00:00:00Z',confirmed_at:'2026-01-01T00:00:00Z',created_at:'2026-01-01T00:00:00Z',app_metadata:{provider:'email',providers:['email']},user_metadata:{full_name:p.name},identities:[{id:p.id,user_id:p.id,provider:'email',identity_data:{email:p.email}}]};}
 // Explicit controls exist only in this loopback test server, never in the application.
 const workspaceStates=new Map();
 const counters={auth:0,rpc:{},bytes:0};
@@ -31,13 +33,36 @@ const server=createServer(async(req,res)=>{res.setHeader('Content-Type','applica
   if(!Object.values(ids).includes(actor)||!['normal','empty','error','slow'].includes(state)){res.statusCode=400;res.end('{}');return;}
   workspaceStates.set(actor,state);res.end('{"ok":true}');return;
  }
+ if(req.url==='/test/confirmation'&&req.method==='POST'&&req.headers['x-fixture-control']==='visual-test'){
+  let body='';for await(const chunk of req)body+=chunk;const {email}=JSON.parse(body);const link=confirmationLinks.get(email);
+  if(!link){res.statusCode=404;res.end('{}');return;}res.end(JSON.stringify({url:link}));return;
+ }
+ if(req.url?.startsWith('/auth/v1/settings')){res.end(JSON.stringify({external:{email:true,google:true}}));return;}
+ if(req.url?.startsWith('/auth/v1/authorize')){
+  const url=new URL(req.url,'http://127.0.0.1:54329'),dest=new URL(url.searchParams.get('redirect_to'));
+  const id=crypto.randomUUID(),code=crypto.randomUUID();extraAuth.set(id,{id,email:`google-${id}@school.test`,name:'Peserta Google',confirmed:true});authCodes.set(code,id);dest.searchParams.set('code',code);res.writeHead(302,{Location:dest.href});res.end();return;
+ }
  if(req.url==='/health'){res.end('{"ok":true}');return;}
- if(req.url?.startsWith('/auth/v1/token')&&req.method==='POST'){let body='';for await(const chunk of req)body+=chunk;const p=JSON.parse(body);const profile=profiles.find(x=>x.email===p.email);if(!profile||p.password!=='Valid-test-password-2026'){res.statusCode=400;res.end(JSON.stringify({error:'invalid_grant',error_description:'Invalid login credentials'}));return;}const u=user(profile.id);const token=[{alg:'HS256',typ:'JWT'},{sub:u.id,aud:'authenticated',role:'authenticated',exp:Math.floor(Date.now()/1000)+86400}].map(x=>Buffer.from(JSON.stringify(x)).toString('base64url')).join('.')+'.fixture';res.end(JSON.stringify({access_token:token,refresh_token:'fixture-refresh',token_type:'bearer',expires_in:86400,user:u}));return;}
- if(req.url?.startsWith('/auth/v1/signup')){res.end(JSON.stringify({id:crypto.randomUUID(),email_confirmed_at:null,identities:[]}));return;}
+ if(req.url?.startsWith('/auth/v1/token')&&req.method==='POST'){
+  let body='';for await(const chunk of req)body+=chunk;const p=JSON.parse(body);let profile;
+  if(p.auth_code){profile=extraAuth.get(authCodes.get(p.auth_code));if(profile){profile.confirmed=true;authCodes.delete(p.auth_code);}}
+  else profile=[...profiles,...extraAuth.values()].find(x=>x.email===p.email&&p.password===(x.password||'Valid-test-password-2026'));
+  if(!profile||profile.confirmed===false){res.statusCode=400;res.end(JSON.stringify({error:'invalid_grant',error_description:'Invalid login credentials'}));return;}
+  res.end(JSON.stringify(authReply(profile)));return;
+ }
+ if(req.url?.startsWith('/auth/v1/signup')){
+  let body='';for await(const chunk of req)body+=chunk;const p=JSON.parse(body),id=crypto.randomUUID(),code=crypto.randomUUID();
+  extraAuth.set(id,{id,email:p.email,name:p.data?.full_name||'Peserta Baru',confirmed:false,password:p.password});authCodes.set(code,id);
+  const dest=new URL(new URL(req.url,'http://127.0.0.1:54329').searchParams.get('redirect_to'));dest.searchParams.set('code',code);confirmationLinks.set(p.email,dest.href);
+  res.end(JSON.stringify(user(id)));return;
+ }
  if(req.url?.startsWith('/auth/v1/recover')||req.url?.startsWith('/auth/v1/logout')){res.end('{}');return;}
  if(req.url?.startsWith('/auth/v1/user')){counters.auth++;const token=req.headers.authorization?.replace('Bearer ','');let id;try{id=JSON.parse(Buffer.from(token.split('.')[1],'base64url').toString()).sub;}catch{}const u=user(id);res.statusCode=u?200:401;res.end(JSON.stringify(u??{message:'invalid test identity'}));return;}
  if(req.url?.startsWith('/rest/v1/rpc/')){if(req.headers.apikey!=='fixture-server-secret'){res.statusCode=403;res.end('{"message":"Forbidden"}');return;}let body='';for await(const chunk of req)body+=chunk;const p=JSON.parse(body||'{}');const name=req.url.split('/').at(-1);counters.rpc[name]=(counters.rpc[name]??0)+1;let result;
- if(name==='school_auth_allowed'){result=(await db.query('select public.school_auth_allowed($1) result',[p.p_email])).rows[0].result;}
+ if(name==='school_class_link_preview'){result=(await db.query('select public.school_class_link_preview($1) result',[p.p_hash])).rows[0].result;}
+ else if(name==='school_class_link_manage'){result=(await db.query('select public.school_class_link_manage($1,$2,$3,$4,$5,$6) result',[p.p_actor,p.p_class,p.p_operation,p.p_hash,p.p_days,p.p_limit])).rows[0].result;}
+ else if(name==='school_class_link_join'){result=(await db.query('select public.school_class_link_join($1,$2,$3,$4) result',[p.p_actor,p.p_email,p.p_name,p.p_hash])).rows[0].result;}
+ else if(name==='school_auth_allowed'){result=(await db.query('select public.school_auth_allowed($1) result',[p.p_email])).rows[0].result;}
  else if(name==='school_api'){
   const state=p.p_action==='workspace'?workspaceStates.get(p.p_actor):'normal';
   if(state==='error')throw new Error('SERVER_ERROR');

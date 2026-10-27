@@ -1,4 +1,6 @@
 export const messages: Record<string, string> = {
+  JOIN_LINK_UNAVAILABLE: "Link undangan tidak berlaku, sudah kedaluwarsa, atau dinonaktifkan. Minta link baru kepada pengajar.",
+  JOIN_LINK_FULL: "Batas peserta untuk link ini sudah tercapai. Minta pengajar membuat link baru atau menambahkan emailmu ke kelas.",
   QUESTION_IN_USE: "Soal ini masih dipakai dalam ujian. Lepaskan dari draft terlebih dahulu. Untuk soal yang sudah dipakai ujian terbit, gunakan Arsip agar riwayat tetap tersedia.",
   CLASS_IN_USE: "Kelas ini masih terhubung ke ujian. Lepaskan kelas dari draft atau hapus draft tersebut terlebih dahulu. Kelas yang dipakai ujian terbit harus dipertahankan.",
   DRAFT_ONLY: "Hanya ujian berstatus draft yang dapat dihapus. Ujian yang sudah diterbitkan beserta riwayatnya tetap dipertahankan.",
