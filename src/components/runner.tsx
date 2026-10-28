@@ -6,6 +6,7 @@ import { api,claimSession } from "@/lib/client";
 import { ApiError,hasAnswer,remaining } from "@/lib/domain";
 import type { Attempt,Answer,Receipt } from "@/lib/types";
 import { loadPending,storePending,clearPending,type PendingAnswer,type PendingIncident } from "@/lib/pending";
+import { fullscreenSupported } from "@/lib/fullscreen";
 import { Brand,Badge,Notice } from "./ui";
 import {Modal} from "./modal";
 import {useExamCaptureGuard} from "./use-exam-capture-guard";
@@ -56,9 +57,9 @@ export function Runner({attemptId}:{attemptId:string}){
    alive.current=true;setOnline(navigator.onLine);
    async function init(){try{sid.current=await claimSession();const a=await load();if(!a)return;setIndex(Math.min(a.current_question,a.items.length-1));const local=await loadPending(key()).catch(()=>null);if(local?.incident){incident.current=local.incident;lock.current=true;setBlocked(true);state.current={...a,answers:{}};setAttempt(state.current);}else if(local&&local.epoch===a.answer_epoch){for(const op of local.answers){queue.current.set(op.item_id,op);a.answers[op.item_id]={optionId:op.option_id,text:op.text,marked:op.marked,revision:op.expected_revision,saved_at:""};}setAttempt({...a});setPendingCount(queue.current.size);}await flushRef.current();if(document.hidden)hide();}catch(e){await handleFailure(e);}}
    void init();
-   const visibility=()=>{if(document.hidden)hide();else{hiddenEpisode.current=false;setFullscreenNeeded(state.current?.mode==="exam"&&sessionStorage.getItem(`safe-exam-fullscreen-exempt:${state.current?.exam_id}`)!=="true"&&!document.fullscreenElement);void flushRef.current();}};
+   const visibility=()=>{if(document.hidden)hide();else{hiddenEpisode.current=false;setFullscreenNeeded(state.current?.mode==="exam"&&sessionStorage.getItem(`safe-exam-fullscreen-exempt:${state.current?.exam_id}`)!=="true"&&fullscreenSupported()&&!document.fullscreenElement);void flushRef.current();}};
    const connection=()=>{setOnline(navigator.onLine);if(navigator.onLine)void flushRef.current();};
-   const fullscreen=()=>{setFullscreenNeeded(state.current?.mode==="exam"&&sessionStorage.getItem(`safe-exam-fullscreen-exempt:${state.current?.exam_id}`)!=="true"&&!document.fullscreenElement);const a=state.current;if(a)void api(`attempts/${attemptId}/events`,{session_id:sid.current,event_id:crypto.randomUUID(),type:document.fullscreenElement?"fullscreen_enter":"fullscreen_exit",answer_epoch:a.answer_epoch}).catch(()=>{});};
+   const fullscreen=()=>{setFullscreenNeeded(state.current?.mode==="exam"&&sessionStorage.getItem(`safe-exam-fullscreen-exempt:${state.current?.exam_id}`)!=="true"&&fullscreenSupported()&&!document.fullscreenElement);const a=state.current;if(a)void api(`attempts/${attemptId}/events`,{session_id:sid.current,event_id:crypto.randomUUID(),type:document.fullscreenElement?"fullscreen_enter":"fullscreen_exit",answer_epoch:a.answer_epoch}).catch(()=>{});};
    const unload=(e:BeforeUnloadEvent)=>{if(state.current?.status==="in_progress"){e.preventDefault();e.returnValue="";}};
    document.addEventListener("visibilitychange",visibility);document.addEventListener("fullscreenchange",fullscreen);window.addEventListener("online",connection);window.addEventListener("offline",connection);window.addEventListener("beforeunload",unload);
    const retry=setInterval(()=>{if(navigator.onLine)void flushRef.current();},5000);
