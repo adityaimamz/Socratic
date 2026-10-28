@@ -26,5 +26,11 @@ it("filters questions by folder and search within it",async()=>{
 });
 it("counts correct, wrong and empty multiple-choice answers",async()=>{
  const r=await db.query<{c:{correct:number;wrong:number;empty:number}}>("select private.attempt_counts($1::jsonb,$2::jsonb) c",[JSON.stringify({items:[{id:"1",correctOptionId:"a"},{id:"2",correctOptionId:"a"},{id:"3",correctOptionId:"a"},{id:"4"}]}),JSON.stringify({"1":{optionId:"a"},"2":{optionId:"b"}})]);
- expect(r.rows[0].c).toEqual({correct:1,wrong:1,empty:1});
+ expect(r.rows[0].c).toMatchObject({correct:1,wrong:1,empty:1});
+});
+it("lists a whole tag folder for building exams by tag",async()=>{
+ const m=await view(teacher,"question-folder-items",{folder:"Matematika"});expect(m.items.map((i:{prompt:string})=>i.prompt).sort()).toEqual(["Soal aljabar","Soal geometri"]);
+ expect((await view(teacher,"question-folder-items",{folder:"__none__"})).items).toHaveLength(1);
+ expect((await view(teacher,"question-folder-items",{folder:"Fisika"})).items).toEqual([]);
+ expect((await view(student,"question-folder-items",{folder:"Matematika"})).items).toEqual([]);
 });

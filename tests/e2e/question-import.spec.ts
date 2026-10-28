@@ -35,6 +35,7 @@ test("upload, correct, select and commit questions; a lost response can be retri
   await expect(page.getByText("2 soal berhasil ditambahkan ke bank soal.", { exact: true })).toBeVisible();
   expect(await bankCount(page)).toBe(before + 2);
   await page.getByRole("link", { name: "Buka bank soal" }).click();
+  await page.goto("/manage/questions?q=2%20%2B%202");
   await expect(page.getByRole("link", { name: "Berapakah hasil 2 + 2?", exact: true })).toBeVisible();
 });
 test("MD and real PDF previews work; malformed, scan and oversized uploads explain how to recover", async ({ page }) => {

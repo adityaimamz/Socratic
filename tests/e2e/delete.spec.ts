@@ -22,7 +22,7 @@ async function openDelete(page: Page, label: string) {
   return page.getByRole("alertdialog");
 }
 test("question delete requires confirmation; cancellation and response-loss retry are safe", async ({ page, context }) => {
-  await signIn(context); const { q } = await seed(context); await page.goto("/manage/questions");
+  await signIn(context); const { q } = await seed(context); await page.goto(`/manage/questions?q=${encodeURIComponent(q.prompt)}`);
   const label = `Hapus soal: ${q.prompt}`;
   let modal = await openDelete(page, label);
   await expect(modal).toContainText("permanen"); await expect(modal.getByRole("button", { name: "Batal", exact: true })).toBeFocused();
@@ -39,7 +39,7 @@ test("question delete requires confirmation; cancellation and response-loss retr
 });
 test("referenced question/class cannot be deleted; deleting a draft releases their links", async ({ page, context }) => {
   await signIn(context); const { q, c } = await seed(context), e = await makeExam(context, q, c);
-  await page.goto("/manage/questions"); let modal = await openDelete(page, `Hapus soal: ${q.prompt}`);
+  await page.goto(`/manage/questions?q=${encodeURIComponent(q.prompt)}`); let modal = await openDelete(page, `Hapus soal: ${q.prompt}`);
   await modal.getByRole("button", { name: "Hapus permanen", exact: true }).click(); await expect(modal.getByRole("alert")).toContainText("masih dipakai");
   await modal.getByRole("button", { name: "Batal", exact: true }).click();
   await page.goto("/manage/classes"); await page.locator("summary").filter({ hasText: c.name }).click();
@@ -51,7 +51,7 @@ test("referenced question/class cannot be deleted; deleting a draft releases the
   await page.goto("/manage/classes"); await page.locator("summary").filter({ hasText: c.name }).click();
   modal = await openDelete(page, `Hapus kelas: ${c.name}`); await modal.getByRole("button", { name: "Hapus permanen", exact: true }).click();
   await expect(page.locator("summary").filter({ hasText: c.name })).toHaveCount(0);
-  await page.goto("/manage/questions"); modal = await openDelete(page, `Hapus soal: ${q.prompt}`);
+  await page.goto(`/manage/questions?q=${encodeURIComponent(q.prompt)}`); modal = await openDelete(page, `Hapus soal: ${q.prompt}`);
   await modal.getByRole("button", { name: "Hapus permanen", exact: true }).click(); await expect(page.getByRole("link", { name: q.prompt, exact: true })).toHaveCount(0);
 });
 test("published exams have no delete control; API blocks deletion and untrusted requests", async ({ page, context, request }) => {
@@ -65,7 +65,7 @@ test("published exams have no delete control; API blocks deletion and untrusted 
   expect((await context.request.post("/api/questions/delete", { headers, data: { id: q.id } })).status()).toBe(422);
 });
 test("delete confirmation is readable on desktop, tablet and phone", async ({ page, context }) => {
-  test.setTimeout(300000); await signIn(context); const { q } = await seed(context); await page.goto("/manage/questions");
+  test.setTimeout(300000); await signIn(context); const { q } = await seed(context); await page.goto(`/manage/questions?q=${encodeURIComponent(q.prompt)}`);
   const modal = await openDelete(page, `Hapus soal: ${q.prompt}`); mkdirSync(".local/delete-preview", { recursive: true });
   for (const width of [1440, 768, 390]) {
     await page.setViewportSize({ width, height: 900 }); await page.evaluate(() => document.fonts.ready);

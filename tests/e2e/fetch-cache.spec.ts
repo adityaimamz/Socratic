@@ -10,15 +10,17 @@ test("a data API request validates Auth once and uses one business RPC",async({c
 test("a fresh management cache is reused and an archive invalidates it",async({page,context})=>{
  await login(context);await page.addInitScript(()=>Object.defineProperty(navigator,"connection",{configurable:true,value:{saveData:true}}));
  const requests:string[]=[];page.on("request",r=>{if(r.url().includes("/api/"))requests.push(r.url());});
- await page.goto("/manage/questions");await expect(page.locator('[data-view-ready="questions"]')).toBeVisible();
- const initialReads=requests.filter(url=>url.includes("/api/views/questions?")).length;
- const prompt=await page.locator("tbody .row-title").first().textContent();
+ await page.goto("/manage/questions");await expect(page.locator('[data-view-ready="question-folders"]')).toBeVisible();
+ const initialReads=requests.filter(url=>url.includes("/api/views/question-folders?")).length;
  await page.getByRole("link",{name:"Kelas & peserta",exact:true}).click();await expect(page.locator('[data-view-ready="classes"]')).toBeVisible();
- await page.getByRole("link",{name:"Bank soal",exact:true}).click();await expect(page.locator('[data-view-ready="questions"]')).toBeVisible();
- expect(requests.filter(url=>url.includes("/api/views/questions?"))).toHaveLength(initialReads);expect(requests.some(url=>url.includes("/api/workspace"))).toBe(false);
+ await page.getByRole("link",{name:"Bank soal",exact:true}).click();await expect(page.locator('[data-view-ready="question-folders"]')).toBeVisible();
+ expect(requests.filter(url=>url.includes("/api/views/question-folders?"))).toHaveLength(initialReads);expect(requests.some(url=>url.includes("/api/workspace"))).toBe(false);
+ await page.locator(".panel ul a").first().click();await expect(page.locator('[data-view-ready="questions"]')).toBeVisible();
+ const folderReads=requests.filter(url=>url.includes("/api/views/questions?")).length;
+ const prompt=await page.locator("tbody .row-title").first().textContent();
  page.on("dialog",d=>d.accept());await page.locator("tbody tr").filter({hasText:prompt!}).getByRole("button",{name:"Arsip",exact:true}).click();
  await expect(page.getByRole("link",{name:prompt!,exact:true})).toHaveCount(0);
- expect(requests.filter(url=>url.includes("/api/views/questions?"))).toHaveLength(initialReads+1);
+ expect(requests.filter(url=>url.includes("/api/views/questions?"))).toHaveLength(folderReads+1);
 });
 
 test("class editors mount on demand and preserve unsaved edits when collapsed",async({page,context})=>{
@@ -51,7 +53,7 @@ test("prefetch is bounded to two and mobile navigation can return to its startin
 test("paginated search returns bounded rows and an editor keeps selections across pages",async({context,page})=>{
  await login(context);const imported=await context.request.post("/api/questions/import/commit",{headers,data:{operation_id:crypto.randomUUID(),questions:Array.from({length:55},(_,i)=>({kind:"essay",prompt:`Soal paginasi ${String(i).padStart(2,"0")}`,options:[],correct_option_id:null,rubric:"Pedoman",weight:1,tag:"Pagination"}))}});expect(imported.ok()).toBe(true);
  const response=await context.request.get("/api/views/questions?q=paginasi&page=1"),body=await response.json();expect(body.total).toBe(55);expect(body.items).toHaveLength(50);
- await page.goto("/manage/exams/new");await page.getByLabel("Cari soal atau tag").fill("paginasi");await expect(page.locator(".picker-controls").filter({has:page.getByLabel("Cari soal atau tag")})).toContainText("55 data");await expect(page.locator(".selection-list label")).toHaveCount(50);
+ await page.goto("/manage/exams/new");await page.getByText("Pilih soal satu per satu").click();await page.getByLabel("Cari soal atau tag").fill("paginasi");await expect(page.locator(".picker-controls").filter({has:page.getByLabel("Cari soal atau tag")})).toContainText("55 data");await expect(page.locator(".selection-list label")).toHaveCount(50);
  const first=page.locator(".selection-list label").first();const label=await first.textContent();await first.getByRole("checkbox").check();
  const picker=page.locator(".picker-controls").filter({has:page.getByLabel("Cari soal atau tag")});await picker.getByRole("button",{name:"Berikutnya"}).click();await expect(page.locator(".selection-list label")).toHaveCount(5);
  await page.getByText("Soal terpilih · 1",{exact:true}).click();await expect(page.locator("details").filter({hasText:"Soal terpilih"})).toContainText(label!.split("Esai")[0]);
@@ -71,9 +73,9 @@ test("search keeps the mobile input mounted while waiting and Back/Forward resto
  await page.route("**/api/views/classes?**",async route=>{if(new URL(route.request().url()).searchParams.get("q")==="pencarian-tidak-ada"){waiting=true;await gate;}await route.continue().catch(()=>{});});
  try{await page.getByLabel("Cari kelas",{exact:true}).fill("pencarian-tidak-ada");await expect.poll(()=>waiting).toBe(true);await expect(page.getByLabel("Cari kelas",{exact:true})).toBeFocused();await expect(page.getByText("Memperbarui data…",{exact:true})).toBeVisible();}finally{release();}
  await expect(page.locator(".class-editor")).toHaveCount(0);await expect(page.getByLabel("Cari kelas",{exact:true})).toBeFocused();
- await page.getByRole("button",{name:"Buka navigasi"}).click();await page.getByRole("link",{name:"Bank soal",exact:true}).click();await expect(page.locator('[data-view-ready="questions"]')).toBeVisible();
+ await page.getByRole("button",{name:"Buka navigasi"}).click();await page.getByRole("link",{name:"Bank soal",exact:true}).click();await expect(page.locator('[data-view-ready="question-folders"]')).toBeVisible();
  await page.goBack();await expect(page.getByLabel("Cari kelas",{exact:true})).toHaveValue("pencarian-tidak-ada");await expect(page.locator(".class-editor")).toHaveCount(0);
- await page.goForward();await expect(page.locator('[data-view-ready="questions"]')).toBeVisible();
+ await page.goForward();await expect(page.locator('[data-view-ready="question-folders"]')).toBeVisible();
 });
 
 for(const change of ["disabled","role"] as const)test(`a ${change} account response clears an already fresh management cache`,async({page,context,browser})=>{
@@ -87,4 +89,12 @@ for(const change of ["disabled","role"] as const)test(`a ${change} account respo
 });
 test("logout clears cached pages in another tab",async({context,page})=>{
  await login(context);const second=await context.newPage();await page.goto("/manage/questions");await second.goto("/manage/classes");await expect(second.locator('[data-view-ready="classes"]')).toBeVisible();await page.getByRole("button",{name:"Keluar",exact:true}).click();await expect(page).toHaveURL(/\/login$/);await expect(second).toHaveURL(/\/login$/);await second.close();
+});
+
+test("exam questions can be chosen by tag without ticking each one",async({context,page})=>{
+ await login(context);const imported=await context.request.post("/api/questions/import/commit",{headers,data:{operation_id:crypto.randomUUID(),questions:Array.from({length:30},(_,i)=>({kind:"essay",prompt:`Soal per tag ${i}`,options:[],correct_option_id:null,rubric:"Pedoman",weight:1,tag:"PilihPerTag"}))}});expect(imported.ok()).toBe(true);
+ await page.goto("/manage/exams/new");const row=page.locator(".row").filter({hasText:"PilihPerTag"});await expect(row).toContainText("30 soal");
+ await row.getByRole("spinbutton").fill("10");await row.getByRole("button",{name:"Tambah",exact:true}).click();await expect(page.getByText("Soal terpilih · 10")).toBeVisible();
+ await row.getByRole("spinbutton").fill("");await row.getByRole("button",{name:"Tambah",exact:true}).click();await expect(page.getByText("Soal terpilih · 30")).toBeVisible();
+ await row.getByRole("button",{name:"Lepas semua"}).click();await expect(page.getByText(/Soal terpilih/)).toHaveCount(0);
 });

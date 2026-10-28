@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { Profile, Question, Exam, SchoolClass, Settings, AttemptSummary, Audit, Item, GradingView, ExamResult, Answer, MonitoredAttempt, IntegrityEvent } from "./types";
+import type { Profile, Question, Exam, SchoolClass, Settings, AttemptSummary, Audit, Item, GradingView, ExamResult, Answer, MonitoredAttempt, IntegrityEvent, Receipt } from "./types";
 
 export interface PageResult<T> { items: T[]; total: number; page: number; pageSize: number }
 export type QuestionSummary = Pick<Question,"id"|"owner_id"|"kind"|"prompt"|"weight"|"tag"|"archived"|"version"> & { option_count: number };
@@ -9,7 +9,7 @@ export type ClassSummary = ClassOption & Pick<SchoolClass,"owner_id"> & {member_
 export type ExamSummary = Pick<Exam,"id"|"owner_id"|"title"|"mode"|"status"|"opens_at"|"closes_at"|"duration_minutes"|"question_count"|"can_manage">;
 export type StudentExam = Omit<Exam,"owner_id"|"question_ids"|"participant_emails"|"staff_ids">;
 export interface ExamEditorData { exam: Exam | null; has_attempts?: boolean; selected_questions: QuestionSummary[]; selected_class: ClassOption | null }
-export interface AttemptDetailData { attempt_id: string; exam_id: string; name: string; status: string; items: Item[]; answers: Record<string,Answer> }
+export interface AttemptDetailData { attempt_id: string; exam_id: string; name: string; status: string; items: Item[]; answers: Record<string,Answer>; counts: NonNullable<MonitoredAttempt["counts"]>; result: Receipt | null }
 export type MonitorSummary = {exam: Exam; attempts: Omit<MonitoredAttempt,"events">[]; total: number; page: number; pageSize: number; server_now: string; stats: {sessions:number;active:number;finished:number;resets:number}};
 export interface ViewDataMap {
  session: Profile;
@@ -17,6 +17,7 @@ export interface ViewDataMap {
  "student-dashboard": {exams:ExamSummary[];attempts:AttemptSummary[];server_now:string;total:number;page:number;pageSize:number;available:number;scheduled:number;completed:number};
  questions: PageResult<QuestionSummary>;
  "question-folders": {folders:QuestionFolder[]};
+ "question-folder-items": {items:QuestionSummary[]};
  "question-selection": PageResult<QuestionSummary>;
  question: {question:Question};
  classes: PageResult<ClassSummary>;
@@ -40,7 +41,7 @@ export interface ViewDataMap {
  result: ExamResult;
 }
 export type ViewName = keyof ViewDataMap;
-export const viewNames = ["session","teacher-overview","student-dashboard","questions","question-folders","question-selection","question","classes","class","class-options","exams","exam","exam-editor","exam-preview","exam-participants","exam-rules","teachers","admin-users","admin-invitations","admin-settings","admin-audit","monitor","attempt-detail","events","grading","result"] as const satisfies readonly ViewName[];
+export const viewNames = ["session","teacher-overview","student-dashboard","questions","question-folders","question-folder-items","question-selection","question","classes","class","class-options","exams","exam","exam-editor","exam-preview","exam-participants","exam-rules","teachers","admin-users","admin-invitations","admin-settings","admin-audit","monitor","attempt-detail","events","grading","result"] as const satisfies readonly ViewName[];
 export const viewInput = z.object({id:z.uuid().optional(),page:z.coerce.number().int().min(1).max(100000).default(1),q:z.string().trim().max(100).default(""),folder:z.string().trim().max(100).optional()}).strict();
 export type ViewParams = { id?: string; page?: number; q?: string; folder?: string };
 const needsId = new Set<ViewName>(["question","class","exam","exam-preview","exam-participants","exam-rules","monitor","attempt-detail","events","grading","result"]);
