@@ -21,15 +21,13 @@ it("replaces questions and settings of a published exam nobody has started",asyn
  const items=(await db.query<{items:{id:string}[]}>("select items from private.exams where id=$1",[id])).rows[0].items;expect(items.map(i=>i.id)).toEqual([q2,q1]);
  const a=await call(student,"attempt.start",{id,session_id:crypto.randomUUID()});expect(a.items).toHaveLength(2);expect(a.mode).toBe("quiz");
 });
-it("after someone started, content stays locked but schedule, title, pass mark and participants can change",async()=>{
+it("after someone started, edits apply only to participants who start later",async()=>{
  const q1=await question("Soal tiga"),q2=await question("Soal empat"),id=await published([q1]);
- await call(student,"attempt.start",{id,session_id:crypto.randomUUID()});
- await expect(update(teacher,id,body([q1,q2]))).rejects.toThrow("EXAM_IMMUTABLE");
- await expect(update(teacher,id,body([q1],{duration_minutes:99}))).rejects.toThrow("EXAM_IMMUTABLE");
- await expect(update(teacher,id,body([q1],{mode:"quiz"}))).rejects.toThrow("EXAM_IMMUTABLE");
+ const first=await call(student,"attempt.start",{id,session_id:crypto.randomUUID()});
  const closes=new Date(Date.now()+7200000).toISOString();
- const r=await update(teacher,id,body([q1],{title:"Diperpanjang",closes_at:closes,passing_score:60,participant_emails:["peserta@school.test","baru@school.test"]}));
- expect(r.title).toBe("Diperpanjang");expect(r.passing_score).toBe(60);expect(r.participant_emails).toHaveLength(2);expect(r.question_ids).toEqual([q1]);
+ const r=await update(teacher,id,body([q1,q2],{title:"Diperpanjang",closes_at:closes,passing_score:60,duration_minutes:50,shuffle_options:true,participant_emails:["peserta@school.test","baru@school.test"]}));
+ expect(r.title).toBe("Diperpanjang");expect(r.question_ids).toEqual([q1,q2]);expect(r.duration_minutes).toBe(50);expect(r.participant_emails).toHaveLength(2);
+ const still=await call(student,"attempt.get",{id:first.id,session_id:(await db.query<{s:string}>("select session_id::text s from private.attempts where id=$1",[first.id])).rows[0].s});expect(still.items).toHaveLength(1);
  await expect(update(teacher,id,body([q1],{closes_at:new Date(Date.now()-1000).toISOString()}))).rejects.toThrow("INVALID_EXAM");
 });
 it("rejects drafts, closed exams and staff without access",async()=>{
