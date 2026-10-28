@@ -5,6 +5,7 @@ const id = { id: uuid };
 const session = { ...id, session_id: uuid };
 const epoch = { ...session, answer_epoch: z.number().int().min(0) };
 const option = z.object({ id: uuid, text: z.string().trim().min(1).max(2000) });
+const examBody = z.object({ id: uuid.optional(), title: z.string().trim().min(3).max(150), instructions: z.string().max(10000), class_id: uuid.nullable(), mode: z.enum(["quiz", "exam"]), opens_at: z.iso.datetime(), closes_at: z.iso.datetime(), duration_minutes: z.number().int().min(1).max(480), passing_score: z.number().min(0).max(100), penalty: z.number().min(0).max(1000), shuffle_questions: z.boolean(), shuffle_options: z.boolean(), question_ids: z.array(uuid).max(100), participant_emails: z.array(email).max(1000) }).refine(e => Date.parse(e.closes_at) > Date.parse(e.opens_at), "Waktu tutup harus setelah waktu buka.").refine(e => new Set(e.question_ids).size === e.question_ids.length, "Soal tidak boleh berulang.");
 const schemas = {
   workspace: z.object({}),
   "admin.health": z.object({}),
@@ -17,7 +18,8 @@ const schemas = {
   "questions.delete": z.object({ ...id, operation_id: uuid }),
   "classes.delete": z.object({ ...id, operation_id: uuid }),
   "exams.delete": z.object({ ...id, operation_id: uuid }),
-  "exams.save": z.object({ id: uuid.optional(), title: z.string().trim().min(3).max(150), instructions: z.string().max(10000), class_id: uuid.nullable(), mode: z.enum(["quiz", "exam"]), opens_at: z.iso.datetime(), closes_at: z.iso.datetime(), duration_minutes: z.number().int().min(1).max(480), passing_score: z.number().min(0).max(100), penalty: z.number().min(0).max(1000), shuffle_questions: z.boolean(), shuffle_options: z.boolean(), question_ids: z.array(uuid).max(100), participant_emails: z.array(email).max(1000) }).refine(e => Date.parse(e.closes_at) > Date.parse(e.opens_at), "Waktu tutup harus setelah waktu buka.").refine(e => new Set(e.question_ids).size === e.question_ids.length, "Soal tidak boleh berulang."),
+  "exams.save": examBody,
+  "exams.update": examBody.safeExtend({ id: uuid }),
   "exams.publish": z.object(id), "exams.close": z.object(id),
   "exams.staff": z.object({ ...id, staff_ids: z.array(uuid).max(20) }),
   "exams.participants": z.object({ ...id, participant_emails: z.array(email).max(1000) }),

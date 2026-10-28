@@ -14,7 +14,7 @@ function isQuestion(value:Record<string,unknown>):value is Record<string,unknown
 }
 export function useViewer(){const p=useContext(ViewerContext);if(!p)throw new Error("Workspace provider missing");return p;}
 export function viewOptions<V extends ViewName>(viewer:Pick<Profile,"id"|"role">,view:V,params:ViewParams={}){
- const normalized={id:params.id??"",page:params.page??1,q:params.q??""};
+ const normalized={id:params.id??"",page:params.page??1,q:params.q??"",folder:params.folder??""};
  return queryOptions({queryKey:["views",viewer.id,viewer.role,view,normalized] as const,
   queryFn:({signal})=>{const search=new URLSearchParams();for(const [key,value] of Object.entries(normalized))if(value!=="")search.set(key,String(value));return api<ViewDataMap[V]>(`views/${view}?${search}`,undefined,"GET",signal);},
   staleTime:liveViews.has(view)?0:30000,gcTime:liveViews.has(view)?0:300000,
