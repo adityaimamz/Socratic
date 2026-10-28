@@ -18,10 +18,20 @@ it("loads every detail read model, separates monitoring events and redacts previ
  const saved=await request(admin,"exams.save",{title:"Ujian scoped",mode:"quiz",class_id:null,instructions:"Petunjuk",opens_at:new Date(Date.now()-60000).toISOString(),closes_at:new Date(Date.now()+3600000).toISOString(),duration_minutes:30,passing_score:70,penalty:0,shuffle_questions:false,shuffle_options:false,question_ids:[q.id],participant_emails:["student@school.test"]});expect(saved.ok,JSON.stringify(saved)).toBe(true);const id=saved.data.id;
  for(const view of ["exam","exam-editor","exam-participants","exam-preview"]){const response=await request(admin,`view.${view}`,{id});expect(response.ok,JSON.stringify({view,response})).toBe(true);expect(response.data.exam.id).toBe(id);if(view==="exam-preview"){expect(JSON.stringify(response.data)).not.toContain("correct_option_id");expect(JSON.stringify(response.data)).not.toContain("rubric");}}
  expect((await request(admin,"exams.publish",{id})).ok).toBe(true);
+ const gated=await request(student,"attempt.start",{id,session_id:crypto.randomUUID()});expect(gated.code).toBe("NAME_REQUIRED");
+ const named=await request(student,"profile.name",{name:"  Nadia Putri  "});expect(named.ok,JSON.stringify(named)).toBe(true);expect(named.data).toMatchObject({name:"Nadia Putri",name_confirmed:true});
  const session=crypto.randomUUID(),started=await request(student,"attempt.start",{id,session_id:session});expect(started.ok,JSON.stringify(started)).toBe(true);
  const monitor=await request(admin,"view.monitor",{id});expect(monitor.ok,JSON.stringify(monitor)).toBe(true);expect(monitor.data.attempts).toHaveLength(1);expect(monitor.data.stats.sessions).toBe(1);expect(monitor.data.attempts[0]).not.toHaveProperty("events");
  const events=await request(admin,"view.events",{id:started.data.id});expect(events.ok,JSON.stringify(events)).toBe(true);expect(events.data.items).toEqual([]);
  expect((await request(student,"view.monitor",{id})).code).toBe("FORBIDDEN");
  const rules=await request(student,"view.exam-rules",{id});expect(rules.ok,JSON.stringify(rules)).toBe(true);expect(rules.data.exam).not.toHaveProperty("participant_emails");expect(rules.data).not.toHaveProperty("questions");expect(rules.data.fullscreen_exempt).toBe(false);expect(Number.isFinite(Date.parse(rules.data.server_now))).toBe(true);
  for(const view of ["teacher-overview","classes","class-options","exams","admin-users","admin-invitations","admin-settings","admin-audit"]){const response=await request(admin,`view.${view}`);expect(response.ok,JSON.stringify({view,response})).toBe(true);}
+});
+it("shows answer counts but not the score before results are released",async()=>{
+ const q=(await request(admin,"view.questions")).data.items[0];
+ const saved=await request(admin,"exams.save",{title:"Ujian tertutup",mode:"exam",class_id:null,instructions:"Petunjuk",opens_at:new Date(Date.now()-60000).toISOString(),closes_at:new Date(Date.now()+3600000).toISOString(),duration_minutes:30,passing_score:70,penalty:0,shuffle_questions:false,shuffle_options:false,question_ids:[q.id],participant_emails:["student@school.test"]});expect(saved.ok,JSON.stringify(saved)).toBe(true);
+ const id=saved.data.id;expect((await request(admin,"exams.publish",{id})).ok).toBe(true);
+ const session=crypto.randomUUID(),started=await request(student,"attempt.start",{id,session_id:session});expect(started.ok,JSON.stringify(started)).toBe(true);
+ const submitted=await request(student,"attempt.submit",{id:started.data.id,session_id:session,answer_epoch:started.data.answer_epoch??0});expect(submitted.ok,JSON.stringify(submitted)).toBe(true);
+ for(const action of ["view.result","attempt.result"]){const result=await request(student,action,{id:started.data.id});expect(result.ok,JSON.stringify(result)).toBe(true);expect(result.data.score_released).toBe(false);expect(result.data.receipt).toMatchObject({correct_count:0,wrong_count:0,empty_count:1});expect(result.data.receipt.score).toBeUndefined();}
 });

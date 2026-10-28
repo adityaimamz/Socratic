@@ -7,7 +7,7 @@ await db.exec('create role service_role; create role authenticated; create role 
 for(const name of readdirSync('supabase/migrations').filter(n=>n.endsWith('.sql')&&!n.includes('storage_cron')).sort())await db.exec(readFileSync(`supabase/migrations/${name}`,'utf8'));
 export const ids={admin:'10000000-0000-4000-8000-000000000001',teacher:'10000000-0000-4000-8000-000000000002',student:'10000000-0000-4000-8000-000000000003',other:'10000000-0000-4000-8000-000000000004'};
 const profiles=Object.entries(ids).map(([role,id])=>({id,email:`${role}@school.test`,name:({admin:'Admin Sekolah',teacher:'Ratih Pramesti',student:'Nadia Putri',other:'Bima Pratama'})[role],role:role==='other'?'student':role}));
-for(const p of profiles)await db.query('insert into private.profiles(id,email,name,role) values($1,$2,$3,$4)',[p.id,p.email,p.name,p.role]);
+for(const p of profiles)await db.query('insert into private.profiles(id,email,name,role,name_confirmed) values($1,$2,$3,$4,true)',[p.id,p.email,p.name,p.role]);
 async function call(actor,action,payload={}){const r=await db.query('select public.school_api($1,$2,$3::jsonb) result',[actor,action,JSON.stringify(payload)]);return r.rows[0].result;}
 const c=await call(ids.teacher,'classes.save',{name:'XII IPA · Matematika',emails:['student@school.test','other@school.test']});
 const idsQuestions=[];for(let i=0;i<10;i++){const correct=crypto.randomUUID();const q=await call(ids.teacher,'questions.save',{prompt:['Jika f(x) = 2x + 3, berapakah nilai f(4)?','Hasil dari 12 × 8 adalah …','Nilai akar kuadrat dari 144 adalah …','Berapakah 25% dari 200?','Hasil dari 3² + 4² adalah …','Keliling persegi dengan sisi 5 cm adalah …','Berapakah hasil 7 × 9?','Nilai dari 2³ adalah …','Hasil pembagian 81 : 9 adalah …','Berapakah jumlah sudut dalam segitiga?'][i],options:[{id:correct,text:['11','96','12','50','25','20 cm','63','8','9','180°'][i]},{id:crypto.randomUUID(),text:'Pilihan alternatif satu'},{id:crypto.randomUUID(),text:'Pilihan alternatif dua'},{id:crypto.randomUUID(),text:'Pilihan alternatif tiga'}],correct_option_id:correct,weight:1,tag:'Matematika'});idsQuestions.push(q.id);}
@@ -15,7 +15,7 @@ for(const [title,mode] of [['Penilaian Matematika · Bab 1','exam'],['Latihan ma
 if(process.env.PERFORMANCE_FIXTURE==='1'){
  await db.query("insert into private.questions(owner_id,kind,prompt,options,correct_option_id,rubric,weight,tag) select $1,'essay','Soal performa '||n||' '||repeat('materi ',40),'[]',null,repeat('pedoman ',50),1,'Kinerja' from generate_series(1,1000) n",[ids.teacher]);
  await db.query("insert into private.classes(owner_id,name) select $1,'Kelas performa '||n from generate_series(1,100) n",[ids.teacher]);
- await db.exec("insert into private.profiles(id,email,name,role) select gen_random_uuid(),'performance-'||n||'@school.test','Peserta pengujian '||n,'student' from generate_series(1,500) n");
+ await db.exec("insert into private.profiles(id,email,name,role,name_confirmed) select gen_random_uuid(),'performance-'||n||'@school.test','Peserta pengujian '||n,'student',true from generate_series(1,500) n");
  await db.query("insert into private.memberships(class_id,email) select $1,email from private.profiles where email like 'performance-%'",[c.id]);
  await db.query("insert into private.exams(owner_id,title,mode,opens_at,closes_at,duration_minutes) select $1,'Draft performa '||n,'quiz',now(),now()+interval '1 day',60 from generate_series(1,100) n",[ids.teacher]);
 }

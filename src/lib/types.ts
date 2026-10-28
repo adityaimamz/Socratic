@@ -1,5 +1,5 @@
 export type Role = "admin" | "teacher" | "student";
-export interface Profile { id: string; name: string; email: string; role: Role; active: boolean }
+export interface Profile { id: string; name: string; email: string; role: Role; active: boolean; name_confirmed?: boolean }
 export interface Option { id: string; text: string }
 export type QuestionKind = "mcq" | "essay";
 export interface Question { id: string; owner_id?: string; kind: QuestionKind; prompt: string; options: Option[]; correct_option_id: string | null; rubric: string; weight: number; tag: string; media_path: string | null; archived: boolean; version: number }

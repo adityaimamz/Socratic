@@ -14,7 +14,7 @@ export const messages: Record<string, string> = {
   AUTH_FAILED: "Email atau kata sandi tidak sesuai, atau akun belum terdaftar. Periksa isian dan email pengaktifan akun di kotak masuk atau spam. Jika lupa kata sandi, pilih Lupa kata sandi. Jika tetap gagal, minta bantuan pengajar.",
   RECOVERY_SESSION_EXPIRED: "Tautan untuk mengganti kata sandi sudah tidak berlaku. Pilih Lupa kata sandi di halaman masuk, lalu buka tautan terbaru dari email.",
   UNAUTHORIZED: "Silakan masuk kembali.", FORBIDDEN: "Akun ini tidak diizinkan melakukan tindakan tersebut.", NOT_FOUND: "Data tidak ditemukan atau tidak dapat diakses.",
-  INVITATION_REQUIRED: "Akunmu belum terdaftar. Beri tahu pengajar email yang kamu gunakan untuk masuk.", ACCOUNT_DISABLED: "Akun ini dinonaktifkan. Minta pengajar memeriksa akunmu.",
+  NAME_REQUIRED: "Isi nama lengkapmu dulu sebelum mengerjakan ujian.", INVITATION_REQUIRED: "Akunmu belum terdaftar. Beri tahu pengajar email yang kamu gunakan untuk masuk.", ACCOUNT_DISABLED: "Akun ini dinonaktifkan. Minta pengajar memeriksa akunmu.",
   EXAM_NOT_OPEN: "Ujian belum dibuka atau jadwalnya sudah berakhir. Periksa jadwal ujian.", STALE_SESSION: "Ujian masih terbuka di halaman atau perangkat lain. Buka kembali di sana, atau minta bantuan pengawas untuk pindah perangkat.",
   ANSWER_EPOCH_MISMATCH: "Semua jawaban telah dihapus sesuai aturan ujian. Membuka soal kembali.", REVISION_CONFLICT: "Jawaban yang tersimpan berbeda. Tunggu sampai soal terbuka kembali, lalu periksa dan isi ulang jawabanmu.",
   ATTEMPT_FINALIZED: "Ujian sudah selesai. Jawaban tidak dapat diubah.", DEADLINE_PASSED: "Waktu ujian telah habis.", ATTEMPT_LIMIT: "Kesempatan mengerjakan sudah digunakan. Hubungi pengajar jika perlu mengulang.",

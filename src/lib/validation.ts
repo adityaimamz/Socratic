@@ -9,6 +9,7 @@ const examBody = z.object({ id: uuid.optional(), title: z.string().trim().min(3)
 const schemas = {
   workspace: z.object({}),
   "admin.health": z.object({}),
+  "profile.name": z.object({ name: z.string().trim().min(3, "Nama lengkap minimal 3 huruf.").max(100) }),
   "admin.invite": z.object({ email, name: z.string().trim().min(2).max(100), role: z.enum(["admin", "teacher", "student"]) }),
   "admin.user": z.object({ ...id, role: z.enum(["admin", "teacher", "student"]), active: z.boolean() }),
   "admin.settings": z.object({ institution: z.string().trim().min(2).max(100), result_retention_days: z.number().int().min(30).max(3650), event_retention_days: z.number().int().min(7).max(365), audit_retention_days: z.number().int().min(30).max(3650) }),
