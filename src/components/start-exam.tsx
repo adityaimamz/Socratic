@@ -7,7 +7,7 @@ import type { Attempt,AttemptSummary,Settings } from "@/lib/types";
 import type {StudentExam} from "@/lib/views";
 import { Notice } from "./ui";
 import { fullscreenSupported } from "@/lib/fullscreen";
-export function StartExam({exam,settings,activeAttempt,serverNow,fullscreenExempt}:{exam:StudentExam;settings:Settings;activeAttempt?:AttemptSummary;serverNow:string;fullscreenExempt:boolean}){
+export function StartExam({exam,settings,activeAttempt,serverNow,fullscreenExempt,retake=false}:{exam:StudentExam;settings:Settings;activeAttempt?:AttemptSummary;serverNow:string;fullscreenExempt:boolean;retake?:boolean}){
  const [accepted,setAccepted]=useState(false),[ready,setReady]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(""),[fullscreen,setFullscreen]=useState(false),[remaining,setRemaining]=useState<number|null>(null);const [exempt,setExempt]=useState(false);const router=useRouter();
  useEffect(()=>{setFullscreen(fullscreenSupported());setExempt(fullscreenExempt);sessionStorage.setItem(`safe-exam-fullscreen-exempt:${exam.id}`,String(fullscreenExempt));setReady(true);const available=(Date.parse(activeAttempt?.deadline_at??exam.closes_at)-Date.parse(serverNow))/60000;setRemaining(Math.max(0,activeAttempt?available:Math.min(exam.duration_minutes,available)));},[exam.id,exam.closes_at,exam.duration_minutes,activeAttempt?.deadline_at,serverNow,fullscreenExempt]);
  async function start(){setBusy(true);setError("");try{if(exam.mode==="exam"&&!exempt){if(fullscreen){try{await document.documentElement.requestFullscreen();}catch{throw new Error("Layar penuh belum bisa dibuka. Tekan tombol mulai atau lanjutkan sekali lagi. Jika tetap gagal, minta bantuan pengawas.");}}}const a=await api<Attempt>(`exams/${exam.id}/attempts`,{session_id:await claimSession()});router.push(a.status==="finalized"?`/results/${a.id}`:`/attempts/${a.id}`);}catch(e){setError(e instanceof Error?e.message:"Ujian belum dapat dimulai.");if(document.fullscreenElement)await document.exitFullscreen().catch(()=>{});setBusy(false);}}
@@ -25,6 +25,6 @@ export function StartExam({exam,settings,activeAttempt,serverNow,fullscreenExemp
   <p className="small">Perkiraan ini dihitung saat halaman dibuka. Waktu yang tersedia bisa berkurang jika kamu menunggu sebelum mulai.</p>
   <label className="check"><input type="checkbox" checked={accepted} onChange={e=>setAccepted(e.target.checked)}/>Saya sudah membaca aturan, memahami aktivitas yang dicatat{exam.mode==="exam"?", aturan penghapusan jawaban,":","} dan batas waktu ujian.</label>
   {error&&<Notice tone="error" title="Ujian belum dapat dibuka">{error} {!ready&&<button type="button" className="text-btn" onClick={()=>window.location.reload()}>Periksa ulang</button>}</Notice>}
-  <button className="btn primary" onClick={()=>void start()} disabled={!ready||!accepted||busy}><Play size={16}/>{busy?"Membuka ujian…":activeAttempt?"Lanjutkan ujian":"Mulai ujian"}</button>
+  <button className="btn primary" onClick={()=>void start()} disabled={!ready||!accepted||busy}><Play size={16}/>{busy?"Membuka ujian…":activeAttempt?"Lanjutkan ujian":retake?"Mulai ujian ulang":"Mulai ujian"}</button>
  </div>;
 }

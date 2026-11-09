@@ -18,6 +18,22 @@ async function save(f:Awaited<ReturnType<typeof fixture>>,item:string,text?:stri
 async function submit(f:Awaited<ReturnType<typeof fixture>>){await save(f,f.mcq.id,undefined,f.correct);await save(f,f.essay.id,"Tumbuhan memakai cahaya, air dan karbon dioksida.");return call(student,"attempt.submit",{id:f.attempt.id,session_id:f.session,answer_epoch:0});}
 function grades(f:Awaited<ReturnType<typeof fixture>>){return [{item_id:f.essay.id,points:3,feedback:"Tambahkan hasil berupa glukosa dan oksigen."},{item_id:f.blank.id,points:0,feedback:"Jawaban kosong."}];}
 describe("essay question lifecycle",()=>{
+ it("waits for deadline finalization and grading before exposing the key after the scheduled close",async()=>{
+  const f=await fixture();
+  const release={id:f.exam.id,review:true};
+  await save(f,f.essay.id,"Jawaban sebelum habis waktu");
+  await db.query("update private.exams set closes_at=now()-interval '1 second' where id=$1",[f.exam.id]);
+  await db.query("update private.attempts set deadline_at=now()-interval '1 second' where id=$1",[f.attempt.id]);
+  await expect(call(teacher,"manage.release",release)).rejects.toThrow("REVIEW_TOO_EARLY");
+  await db.query("select public.school_finalize_due()");
+  await expect(call(teacher,"manage.release",release)).rejects.toThrow("GRADING_PENDING");
+  expect((await call(student,"attempt.result",{id:f.attempt.id})).review).toEqual([]);
+  await call(teacher,"manage.grade",{id:f.attempt.id,operation_id:crypto.randomUUID(),grades:grades(f)});
+  expect(await call(teacher,"manage.release",release)).toEqual({ok:true});
+  expect(await call(teacher,"manage.release",release)).toEqual({ok:true});
+  expect((await call(student,"attempt.result",{id:f.attempt.id})).review_released).toBe(true);
+  await expect(db.query("select public.school_exam_update($1,$2,$3)",[teacher,f.exam.id,f.exam])).rejects.toThrow("EXAM_IMMUTABLE");
+ });
  it("validates question shapes and text limits without accepting fake MCQ answers",async()=>{
   expect(parseAction("questions.save",{kind:"essay",prompt:"Jelaskan fotosintesis",weight:4,tag:"IPA"})).toMatchObject({kind:"essay",options:[],correct_option_id:null});
   expect(()=>parseAction("questions.save",{kind:"mcq",prompt:"Soal",options:[],weight:1,tag:""})).toThrow();expect(()=>parseAction("questions.save",{kind:"essay",prompt:"Soal",correct_option_id:crypto.randomUUID(),weight:1,tag:""})).toThrow();

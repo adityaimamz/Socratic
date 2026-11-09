@@ -18,7 +18,7 @@ export const messages: Record<string, string> = {
   EXAM_NOT_OPEN: "Ujian belum dibuka atau jadwalnya sudah berakhir. Periksa jadwal ujian.", STALE_SESSION: "Ujian masih terbuka di halaman atau perangkat lain. Buka kembali di sana, atau minta bantuan pengawas untuk pindah perangkat.",
   ANSWER_EPOCH_MISMATCH: "Semua jawaban telah dihapus sesuai aturan ujian. Membuka soal kembali.", REVISION_CONFLICT: "Jawaban yang tersimpan berbeda. Tunggu sampai soal terbuka kembali, lalu periksa dan isi ulang jawabanmu.",
   ATTEMPT_FINALIZED: "Ujian sudah selesai. Jawaban tidak dapat diubah.", DEADLINE_PASSED: "Waktu ujian telah habis.", ATTEMPT_LIMIT: "Kesempatan mengerjakan sudah digunakan. Hubungi pengajar jika perlu mengulang.",
-  REVIEW_TOO_EARLY: "Pembahasan hanya dapat dirilis setelah seluruh jendela ujian dan tambahan waktu selesai.",
+  REVIEW_TOO_EARLY: "Pembahasan dapat dirilis setelah akses mulai ditutup dan semua sesi selesai.",
   EXAM_IMMUTABLE: "Ujian sudah diterbitkan. Isi dan aturan tidak dapat diubah.", INVALID_QUESTION: "Periksa soal, opsi, dan kunci jawaban.",
   INVALID_EXAM: "Ujian membutuhkan 1–100 soal dan jadwal yang masih berlaku.", INVALID_ANSWER: "Pilihan jawaban tidak sesuai dengan soal.",
   REASON_REQUIRED: "Tulis alasan tindakan, minimal 5 karakter.", CANNOT_EDIT_SELF: "Anda tidak dapat mengubah hak akses akun sendiri.",

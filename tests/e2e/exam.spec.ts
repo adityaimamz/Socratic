@@ -4,6 +4,73 @@ import {inspectScreen} from "../support/visual";
 const ids={admin:"10000000-0000-4000-8000-000000000001",teacher:"10000000-0000-4000-8000-000000000002",student:"10000000-0000-4000-8000-000000000003",other:"10000000-0000-4000-8000-000000000004"};
 async function login(context:BrowserContext,role:keyof typeof ids){const token=[{alg:"HS256",typ:"JWT"},{sub:ids[role],aud:"authenticated",role:"authenticated",exp:Math.floor(Date.now()/1000)+86400,iat:Math.floor(Date.now()/1000)}].map(o=>Buffer.from(JSON.stringify(o)).toString("base64url")).join(".")+".fixture";const session={access_token:token,refresh_token:"fixture-refresh",token_type:"bearer",expires_in:86400,expires_at:Math.floor(Date.now()/1000)+86400,user:{id:ids[role],email:`${role}@school.test`}};await context.addCookies([{name:"sb-127-auth-token",value:"base64-"+Buffer.from(JSON.stringify(session)).toString("base64url"),domain:"127.0.0.1",path:"/",httpOnly:false,sameSite:"Lax"}]);}
 test("unauthenticated user sees Google admission and privacy",async({page})=>{await page.goto("/login");await expect(page.getByRole("heading",{name:"Masuk ke ruang ujian"})).toBeVisible();await expect(page.getByRole("link",{name:"Lanjutkan dengan Google"})).toHaveAttribute("href","/auth/login");await page.goto("/privacy");await expect(page.getByRole("heading",{name:"Data pribadi & aturan ujian"})).toBeVisible();});
+
+test("score release preserves access and closing allows review once all attempts are final",async({page,context,browser})=>{
+ test.setTimeout(180000);
+ const headers={origin:"http://127.0.0.1:3100"};
+ const post=async(actor:BrowserContext,path:string,data:unknown={})=>{
+  const response=await actor.request.post(`/api/${path}`,{headers,data:data as object});
+  expect(response.ok(),await response.text()).toBe(true);
+  return response.json();
+ };
+ await login(context,"teacher");
+ const {questions}=await (await context.request.get("/api/workspace")).json();
+ const payload={title:"Ujian akses dan pembahasan",instructions:"Kerjakan ujian.",mode:"exam",class_id:null,
+  opens_at:new Date(Date.now()-60_000).toISOString(),closes_at:new Date(Date.now()+3_600_000).toISOString(),
+  duration_minutes:30,passing_score:70,penalty:0,shuffle_questions:false,shuffle_options:false,
+  question_ids:[questions.find((question:{kind:string})=>question.kind==="mcq").id],participant_emails:["student@school.test","other@school.test"]};
+ const {id}=await post(context,"exams/save",payload);
+ await post(context,`exams/${id}/publish`);
+ const student=await browser.newContext({baseURL:headers.origin});
+ const other=await browser.newContext({baseURL:headers.origin});
+ try{
+  await login(student,"student");
+  await login(other,"other");
+  const session_id=crypto.randomUUID();
+  const first=await post(student,`exams/${id}/attempts`,{session_id});
+  page.on("dialog",dialog=>dialog.accept());
+  await page.goto(`/manage/exams/${id}/results`);
+  const review=page.getByRole("button",{name:"Terbitkan pembahasan",exact:true});
+  await expect(review).toBeDisabled();
+  await expect(page.getByText(/Akses mulai dijadwalkan tutup/)).toBeVisible();
+  await page.getByRole("button",{name:"Terbitkan nilai",exact:true}).click();
+  await expect(page.getByRole("button",{name:"Nilai sudah terbit"})).toBeDisabled();
+
+  const participant=await other.newPage();
+  await participant.goto(`/exams/${id}/check`);
+  await expect(participant.getByRole("button",{name:"Mulai ujian",exact:true})).toBeVisible();
+  const otherSession=crypto.randomUUID();
+  const second=await post(other,`exams/${id}/attempts`,{session_id:otherSession});
+  expect((await post(student,`exams/${id}/attempts`,{session_id})).id).toBe(first.id);
+  await post(other,`attempts/${second.id}/submit`,{session_id:otherSession,answer_epoch:0});
+  await participant.reload();
+  await expect(participant.getByRole("link",{name:"Lihat bukti dan hasil ujian terakhir"})).toBeVisible();
+  await expect(participant.getByRole("button",{name:"Mulai ujian",exact:true})).toHaveCount(0);
+  await post(context,`manage/attempts/${second.id}/actions`,{action:"retake",reason:"Ujian ulang disetujui"});
+  await participant.reload();
+  await expect(participant.getByRole("button",{name:"Mulai ujian ulang"})).toBeVisible();
+
+  await post(context,`exams/${id}/close`);
+  await page.reload();
+  await expect(page.getByText(/Batas waktu sesi aktif terakhir/)).toBeVisible();
+  await expect(review).toBeDisabled();
+  expect((await post(student,`exams/${id}/attempts`,{session_id})).id).toBe(first.id);
+  await post(student,`attempts/${first.id}/submit`,{session_id,answer_epoch:0});
+  await page.getByRole("button",{name:"Perbarui"}).click();
+  await expect(review).toBeEnabled();
+  for(const width of [1440,768,390]){
+   await page.setViewportSize({width,height:900});
+   await expect(page.locator("#result-publication")).toBeVisible();
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+   await page.getByRole("region",{name:"Publikasi hasil"}).screenshot({path:`test-results/result-publication-${width}.png`});
+  }
+  await review.click();
+  await expect(page.getByRole("button",{name:"Pembahasan sudah terbit"})).toBeDisabled();
+  const result=await (await student.request.get(`/api/attempts/${first.id}/result`)).json();
+  expect(result.review_released).toBe(true);
+  expect(result.review).toHaveLength(1);
+ }finally{await student.close();await other.close();}
+});
 test("teacher authoring and admin boundaries",async({page,context})=>{await login(context,"teacher");await page.goto("/manage");await expect(page.getByRole("heading",{name:"Ruang pengajar"})).toBeVisible();await page.goto("/manage/questions/new");await page.getByLabel("Pertanyaan",{exact:true}).fill("Berapa hasil 5 + 5?");for(const [i,text] of ["10","9","8","7"].entries())await page.getByLabel(`Teks pilihan ${String.fromCharCode(65+i)}`).fill(text);await page.getByRole("button",{name:"Simpan soal"}).click();await expect(page).toHaveURL(/\/manage\/questions$/);await page.goto("/manage/questions?q=5%20%2B%205");await expect(page.getByText("Berapa hasil 5 + 5?")).toBeVisible();await page.goto("/admin/users");await expect(page.getByRole("heading",{name:"Halaman tidak tersedia"})).toBeVisible();});
 test("strict exam resets on first hidden event, survives refresh, prevents old requests and hides score",async({page,context})=>{
  await login(context,"student");await page.goto("/dashboard");await expect(page.getByRole("heading",{name:"Ujian saya"})).toBeVisible();

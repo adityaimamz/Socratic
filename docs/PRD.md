@@ -244,7 +244,7 @@ Konfigurasi wajib: judul, instruksi, peserta, waktu buka/tutup, zona waktu, dura
 
 - Bukti submit berisi attempt ID, waktu server, sebab finalisasi, dan status penerimaan; tetap tersedia walau nilai belum dirilis.
 - Rilis nilai dan rilis pembahasan/kunci adalah dua izin terpisah. Default Exam: keduanya ditahan; Quiz dapat merilis nilai langsung.
-- Pembahasan/kunci hanya boleh dirilis setelah jendela ujian dan seluruh perpanjangan peserta selesai; retake memakai versi baru bila kunci sudah terbuka.
+- Pembahasan dan kunci boleh dirilis setelah akses mulai ditutup oleh pengajar atau jadwal berakhir, semua sesi selesai, dan penilaian esai lengkap. Kesempatan ulang memakai ujian baru jika kunci sudah terbuka.
 - Peserta hanya melihat hasil sendiri. Pengajar melihat rekap, benar/salah/kosong, status kelulusan, dan flag review secara terpisah dari nilai.
 - CSV mencakup ID peserta, kelas, ujian, nilai, status, waktu, dan flag. Lindungi cell yang bisa menjadi formula spreadsheet dan audit ekspor.
 - Petugas dapat memberi status review/invalidasi dengan alasan tanpa menimpa nilai asli. Regrade massal tidak termasuk MVP.

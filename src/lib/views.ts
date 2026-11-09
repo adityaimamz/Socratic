@@ -10,7 +10,8 @@ export type ExamSummary = Pick<Exam,"id"|"owner_id"|"title"|"mode"|"status"|"ope
 export type StudentExam = Omit<Exam,"owner_id"|"question_ids"|"participant_emails"|"staff_ids">;
 export interface ExamEditorData { exam: Exam | null; has_attempts?: boolean; selected_questions: QuestionSummary[]; selected_class: ClassOption | null }
 export interface AttemptDetailData { attempt_id: string; exam_id: string; name: string; status: string; items: Item[]; answers: Record<string,Answer>; counts: NonNullable<MonitoredAttempt["counts"]>; result: Receipt | null }
-export type MonitorSummary = {exam: Exam; attempts: Omit<MonitoredAttempt,"events">[]; total: number; page: number; pageSize: number; server_now: string; stats: {sessions:number;active:number;finished:number;resets:number}};
+export type ReviewRelease = {reason: "released" | "draft" | "window_open" | "attempts_active" | "grading_pending" | "ready"; active_until: string | null};
+export type MonitorSummary = {exam: Exam; attempts: Omit<MonitoredAttempt,"events">[]; total: number; page: number; pageSize: number; server_now: string; stats: {sessions:number;active:number;finished:number;resets:number}; review_release?: ReviewRelease};
 export interface ViewDataMap {
  session: Profile;
  "teacher-overview": {exams:ExamSummary[];published:number;questions:number;classes:number};
@@ -28,7 +29,7 @@ export interface ViewDataMap {
  "exam-editor": ExamEditorData;
  "exam-preview": {exam:Exam;questions:Item[]};
  "exam-participants": {exam:Exam;selected_staff:Pick<Profile,"id"|"name">[]};
- "exam-rules": {exam:StudentExam;settings:Settings;attempts:AttemptSummary[];server_now:string;fullscreen_exempt:boolean};
+ "exam-rules": {exam:StudentExam;settings:Settings;attempts:AttemptSummary[];server_now:string;fullscreen_exempt:boolean;attempts_remaining?:number};
  teachers: PageResult<Profile>;
  "admin-users": PageResult<Profile>;
  "admin-invitations": PageResult<{email:string;name:string;role:Profile["role"];accepted_by:string|null}>;

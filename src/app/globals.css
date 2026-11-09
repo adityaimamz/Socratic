@@ -87,6 +87,7 @@ aside>.panel,aside.stack>.panel { background: var(--raised); border-color: trans
 .btn.primary { background: var(--accent); color: var(--surface); border-color: var(--accent); }
 .btn.primary:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
 .btn.primary:disabled { background: var(--active); color: var(--muted); border-color: var(--border); }
+.result-publication .btn:disabled { background: var(--raised); color: var(--muted); border-color: var(--border); }
 .btn.danger { color: var(--negative); border-color: var(--negative); }
 .btn.small { min-height: 32px; padding: 5px 10px; font-size: 13px; }
 .text-btn { background: none; border: 0; padding: 0; color: var(--muted); text-decoration: underline; text-underline-offset: 4px; }
